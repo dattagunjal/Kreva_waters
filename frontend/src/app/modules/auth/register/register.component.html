@@ -1,0 +1,147 @@
+<div class="auth-container">
+  <div class="auth-card">
+
+    <!-- Header -->
+    <div class="auth-header">
+      <span class="auth-logo">💧</span>
+      <h2>Ugam Waters</h2>
+      <p>Create your account</p>
+    </div>
+
+    <div class="alert alert-danger" *ngIf="error">{{ error }}</div>
+
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+
+      <!-- ── Full Name ─────────────────────────────────────────────── -->
+      <div class="form-group">
+        <label for="reg-name">Full Name</label>
+        <input id="reg-name" type="text" formControlName="name"
+               placeholder="John Doe" autocomplete="name"/>
+        <span class="error" *ngIf="nameCtrl.touched && nameCtrl.errors?.['required']">Name is required.</span>
+        <span class="error" *ngIf="nameCtrl.touched && nameCtrl.errors?.['minlength']">At least 2 characters.</span>
+      </div>
+
+      <!-- ── Email Address ────────────────────────────────────────── -->
+      <div class="form-group">
+        <label for="reg-email">Email Address</label>
+        <input id="reg-email" type="email" formControlName="email"
+               placeholder="you@example.com" autocomplete="email" [readonly]="otpSent"/>
+        <span class="error" *ngIf="registerForm.touched && registerForm.errors?.['invalidEmail']">
+          Enter a valid email address.
+        </span>
+      </div>
+
+      <!-- ── Mobile Number ────────────────────────────────────────── -->
+      <div class="form-group">
+        <label for="reg-mobile">Mobile Number</label>
+        <input id="reg-mobile" type="text" formControlName="mobileNumber"
+               placeholder="9876543210" autocomplete="tel" [readonly]="otpSent"/>
+        <span class="error" *ngIf="registerForm.touched && registerForm.errors?.['invalidMobile']">
+          Enter a valid 10-digit mobile number starting with 6-9.
+        </span>
+        <span class="error" *ngIf="registerForm.touched && registerForm.errors?.['emailOrMobileRequired']">
+          At least an email address or mobile number is required.
+        </span>
+      </div>
+
+      <!-- ── OTP Verification Channel ─────────────────────────────── -->
+      <div class="form-group">
+        <label for="reg-otpChannel">Send OTP To</label>
+        <div class="input-with-action">
+          <select id="reg-otpChannel" formControlName="otpChannel" style="padding: 10px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); background: var(--bg-input); color: var(--text-primary); flex: 1;">
+            <option value="email">✉️ Email Address</option>
+            <option value="mobile">📱 Mobile Number</option>
+          </select>
+          <button type="button" class="btn-otp-send"
+                  (click)="sendOtp()"
+                  [disabled]="!canSendOtp()">
+            <span *ngIf="!otpLoading">
+              {{ otpSent && otpCountdown > 0 ? 'Resend in ' + otpCountdown + 's' : (otpSent ? 'Resend OTP' : 'Send OTP') }}
+            </span>
+            <span *ngIf="otpLoading" class="spinner-inline">⏳</span>
+          </button>
+        </div>
+        <span class="error" *ngIf="registerForm.touched && registerForm.errors?.['emailVerificationRequired']">
+          Please enter an email address to verify.
+        </span>
+        <span class="error" *ngIf="registerForm.touched && registerForm.errors?.['mobileVerificationRequired']">
+          Please enter a mobile number to verify.
+        </span>
+        <span class="alert-success" *ngIf="otpSuccess">{{ otpSuccess }}</span>
+        <span class="error"         *ngIf="otpError">{{ otpError }}</span>
+
+        <!-- Dev-only OTP hint box -->
+        <div class="dev-otp-box" *ngIf="devOtp">
+          🛠 <strong>Dev mode OTP:</strong> <span class="dev-otp-code">{{ devOtp }}</span>
+          <span class="dev-otp-note">(Remove this in production)</span>
+        </div>
+      </div>
+
+      <!-- ── OTP Input (shown after Send OTP) ─────────────────────── -->
+      <div class="form-group otp-group" *ngIf="otpSent">
+        <label for="reg-otp">Enter OTP</label>
+        <input id="reg-otp" type="text" formControlName="otp"
+               placeholder="6-digit code" maxlength="6" inputmode="numeric"
+               class="otp-input"/>
+        <span class="error" *ngIf="otpCtrl.touched && otpCtrl.errors?.['required']">OTP is required.</span>
+        <span class="error" *ngIf="otpCtrl.touched && (otpCtrl.errors?.['minlength'] || otpCtrl.errors?.['maxlength'])">
+          OTP must be exactly 6 digits.
+        </span>
+      </div>
+
+      <!-- ── Password ──────────────────────────────────────────────── -->
+      <div class="form-group">
+        <label for="reg-password">Password</label>
+        <div class="password-wrapper">
+          <input id="reg-password" [type]="showPassword ? 'text' : 'password'"
+                 formControlName="password"
+                 placeholder="Min 8 chars, upper, lower, number, symbol"
+                 autocomplete="new-password"/>
+          <button type="button" class="btn-eye" (click)="showPassword = !showPassword"
+                  [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'">
+            {{ showPassword ? '🙈' : '👁️' }}
+          </button>
+        </div>
+
+        <!-- Strength bar -->
+        <div class="pw-strength-bar" *ngIf="pwVal.length > 0">
+          <div class="pw-strength-fill" [class]="'strength-' + pwStrength"
+               [style.width.%]="(pwStrength + 1) * 25"></div>
+        </div>
+        <div class="pw-strength-label" *ngIf="pwVal.length > 0"
+             [class]="'strength-' + pwStrength">
+          {{ pwStrengthLabel }}
+        </div>
+
+        <!-- Criteria checklist -->
+        <ul class="pw-checklist" *ngIf="passwordCtrl.touched || pwVal.length > 0">
+          <li [class.met]="pwMinLen">
+            <span class="check-icon">{{ pwMinLen ? '✅' : '○' }}</span> At least 8 characters
+          </li>
+          <li [class.met]="pwUppercase">
+            <span class="check-icon">{{ pwUppercase ? '✅' : '○' }}</span> One uppercase letter
+          </li>
+          <li [class.met]="pwLowercase">
+            <span class="check-icon">{{ pwLowercase ? '✅' : '○' }}</span> One lowercase letter
+          </li>
+          <li [class.met]="pwNumber">
+            <span class="check-icon">{{ pwNumber ? '✅' : '○' }}</span> One number
+          </li>
+          <li [class.met]="pwSpecial">
+            <span class="check-icon">{{ pwSpecial ? '✅' : '○' }}</span> One special character (!&#64;#$…)
+          </li>
+        </ul>
+      </div>
+
+      <!-- ── Submit ─────────────────────────────────────────────────── -->
+      <button type="submit" class="btn-primary" [disabled]="loading || !otpSent">
+        {{ loading ? 'Creating account…' : 'Create Account' }}
+      </button>
+      <p class="submit-hint" *ngIf="!otpSent">You must send and verify an OTP to register.</p>
+    </form>
+
+    <p class="auth-footer">
+      Already have an account? <a routerLink="/auth/login">Sign In</a>
+    </p>
+  </div>
+</div>

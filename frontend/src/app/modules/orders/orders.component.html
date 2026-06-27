@@ -1,0 +1,172 @@
+<div class="orders-container">
+  <div class="tabs">
+    <button [class.active]="view === 'checkout'" (click)="view = 'checkout'">Checkout</button>
+    <button [class.active]="view === 'history'"  (click)="view = 'history'">My Orders</button>
+  </div>
+
+  <!-- ── CHECKOUT ───────────────────────────────────────────────────── -->
+  <div *ngIf="view === 'checkout'">
+
+    <div class="success-banner" *ngIf="orderSuccess">
+      ✅ Order placed successfully! Redirecting to your orders…
+    </div>
+
+    <div class="alert alert-danger" *ngIf="orderError">{{ orderError }}</div>
+
+    <div *ngIf="cartService.items.length === 0 && !orderSuccess" class="empty">
+      <p>Your cart is empty. <a routerLink="/products">Shop now →</a></p>
+    </div>
+
+    <div *ngIf="cartService.items.length > 0" class="checkout-layout">
+
+      <!-- Left: Order Summary -->
+      <div class="order-summary">
+        <h3>🧾 Order Summary</h3>
+        <div *ngFor="let item of cartService.items" class="summary-item" style="display:flex; flex-direction:column; align-items:flex-start; margin-bottom:12px; border-bottom:1px solid #f1f5f9; padding-bottom:8px;">
+          <div style="display:flex; justify-content:space-between; width:100%;">
+            <span style="font-weight: 500;">{{ item.product.name }} × {{ item.quantity }}</span>
+            <span>₹{{ item.product.price * item.quantity }}</span>
+          </div>
+          <!-- Customization info -->
+          <div *ngIf="item.customization" style="font-size:0.75rem; color:var(--text-muted); background:#f8fafc; padding:6px 10px; border-radius:6px; margin-top:4px; width:100%; border:1px solid #e2e8f0;">
+            <div>🎨 <strong>Custom:</strong> {{ item.customization.businessName }}</div>
+            <div *ngIf="item.customization.tagline"><strong>Tagline:</strong> <em>"{{ item.customization.tagline }}"</em></div>
+            <div *ngIf="item.customization.contactNumber"><strong>Contact:</strong> {{ item.customization.contactNumber }}</div>
+            <div *ngIf="item.customization.website"><strong>Website:</strong> {{ item.customization.website }}</div>
+            <div *ngIf="item.customization.logoUrl" style="margin-top:4px;">
+              <strong>Logo:</strong> <img [src]="item.customization.logoUrl" alt="Logo preview" style="width:30px; height:30px; object-fit:contain; display:inline-block; vertical-align:middle; margin-left:6px; border:1px solid #ddd; padding:1px; background:white; border-radius:3px;"/>
+            </div>
+          </div>
+        </div>
+        <div class="summary-divider"></div>
+        <div class="summary-total">
+          Total &nbsp;<strong>₹{{ cartService.getTotal() }}</strong>
+        </div>
+      </div>
+
+      <!-- Right: Checkout Form -->
+      <form [formGroup]="checkoutForm" (ngSubmit)="placeOrder()" class="checkout-form">
+        <h3>📦 Delivery Address</h3>
+
+        <!-- House No. / Shop Name -->
+        <div class="form-group">
+          <label for="houseNo">House No. / Flat / Shop Name <span class="required-star">*</span></label>
+          <input
+            id="houseNo"
+            type="text"
+            formControlName="houseNo"
+            placeholder="e.g. 12B, Sunrise Apartments"
+            autocomplete="address-line1"
+          />
+          <span class="error" *ngIf="houseNoCtrl.touched && houseNoCtrl.errors?.['required']">
+            House / shop name is required.
+          </span>
+          <span class="error" *ngIf="houseNoCtrl.touched && houseNoCtrl.errors?.['maxlength']">
+            Maximum 100 characters allowed.
+          </span>
+        </div>
+
+        <!-- Area / Village / Street -->
+        <div class="form-group">
+          <label for="area">Area / Village / Street <span class="required-star">*</span></label>
+          <input
+            id="area"
+            type="text"
+            formControlName="area"
+            placeholder="e.g. Kothrud, Near SBI Bank, Pune"
+            autocomplete="address-line2"
+          />
+          <span class="error" *ngIf="areaCtrl.touched && areaCtrl.errors?.['required']">
+            Area / village is required.
+          </span>
+          <span class="error" *ngIf="areaCtrl.touched && areaCtrl.errors?.['minlength']">
+            Please enter at least 3 characters.
+          </span>
+        </div>
+
+        <!-- Pincode -->
+        <div class="form-group">
+          <label for="pincode">Pincode <span class="required-star">*</span></label>
+          <input
+            id="pincode"
+            type="text"
+            formControlName="pincode"
+            placeholder="e.g. 411038"
+            maxlength="6"
+            inputmode="numeric"
+            autocomplete="postal-code"
+            (input)="onPincodeInput($event)"
+          />
+          <span class="error" *ngIf="pincodeCtrl.touched && pincodeCtrl.errors?.['required']">
+            Pincode is required.
+          </span>
+          <span class="error" *ngIf="pincodeCtrl.touched && pincodeCtrl.errors?.['invalidPincode']">
+            Enter a valid 6-digit Indian pincode.
+          </span>
+        </div>
+
+        <!-- Payment Method -->
+        <div class="form-group">
+          <label for="paymentMethod">Payment Method <span class="required-star">*</span></label>
+          <select id="paymentMethod" formControlName="paymentMethod">
+            <option value="COD">💵 Cash on Delivery</option>
+            <option value="UPI">📱 UPI</option>
+            <option value="CARD">💳 Credit / Debit Card</option>
+          </select>
+        </div>
+
+        <button type="submit" class="btn-primary btn-place-order" [disabled]="loading">
+          {{ loading ? 'Placing Order…' : '✅ Place Order' }}
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ── ORDER HISTORY ─────────────────────────────────────────────── -->
+  <div *ngIf="view === 'history'">
+    <h3 class="page-title" style="margin-bottom:1rem">My Orders</h3>
+    
+    <div class="alert alert-success" *ngIf="historySuccess">{{ historySuccess }}</div>
+    <div class="alert alert-danger" *ngIf="historyError">{{ historyError }}</div>
+
+    <div *ngIf="myOrders.length === 0" class="empty">No orders yet. <a routerLink="/products">Start shopping →</a></div>
+    <div class="order-card" *ngFor="let order of myOrders">
+      <div class="order-header">
+        <span>Order #{{ order.id }}</span>
+        <span class="status" [ngClass]="order.status.toLowerCase()">{{ order.status }}</span>
+      </div>
+      <p class="order-meta">📍 {{ order.address }}</p>
+      <p class="order-meta">🕐 {{ order.createdAt | date:'d MMM y, h:mm a' }}</p>
+
+      <!-- Line items -->
+      <div class="order-items" *ngIf="order.items?.length">
+        <div class="order-line" *ngFor="let item of order.items" style="display:flex; flex-direction:column; align-items:flex-start; margin-bottom:12px; border-bottom:1px dashed #e2e8f0; padding-bottom:8px;">
+          <div style="display:flex; justify-content:space-between; width:100%;">
+            <span style="font-weight: 500;">{{ item.product?.name }} × {{ item.quantity }}</span>
+            <span>₹{{ item.price * item.quantity }}</span>
+          </div>
+          <!-- Customization details for order item -->
+          <div *ngIf="item.businessName" style="font-size:0.75rem; color:var(--text-muted); background:#f8fafc; padding:6px 10px; border-radius:6px; margin-top:4px; width:100%; border:1px solid #e2e8f0;">
+            <div>🎨 <strong>Customized Design:</strong></div>
+            <div><strong>Business Name:</strong> {{ item.businessName }}</div>
+            <div *ngIf="item.tagline"><strong>Tagline:</strong> <em>"{{ item.tagline }}"</em></div>
+            <div *ngIf="item.contactNumber"><strong>Contact:</strong> {{ item.contactNumber }}</div>
+            <div *ngIf="item.website"><strong>Website:</strong> {{ item.website }}</div>
+            <div *ngIf="item.notes" style="font-size:0.7rem; color:var(--text-muted); margin-top:2px;"><strong>Notes:</strong> {{ item.notes }}</div>
+            <div *ngIf="item.logoUrl" style="margin-top:4px;">
+              <strong>Logo:</strong> <img [src]="item.logoUrl" alt="Logo preview" style="width:30px; height:30px; object-fit:contain; display:inline-block; vertical-align:middle; margin-left:6px; border:1px solid #ddd; padding:1px; background:white; border-radius:3px;"/>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p class="order-total">Total: <strong>₹{{ order.totalAmount }}</strong></p>
+      <button *ngIf="order.status === 'PENDING'" 
+              class="btn-cancel" 
+              [disabled]="cancelingOrderId === order.id"
+              (click)="cancelOrder(order.id!)">
+        {{ cancelingOrderId === order.id ? 'Cancelling...' : 'Cancel Order' }}
+      </button>
+    </div>
+  </div>
+</div>

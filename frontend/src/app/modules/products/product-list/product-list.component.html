@@ -1,0 +1,128 @@
+<div class="products-container">
+  <h2 class="page-title">💧 Ugam Waters Products</h2><p class="company-intro">Premium packaged drinking water available in 200ml, 500ml and 1L bottles. Product details are loaded from the database.</p>
+
+  <div class="loading" *ngIf="loading">Loading products...</div>
+
+  <div class="products-grid" *ngIf="!loading">
+    <div class="product-card" *ngFor="let product of products">
+      <img [src]="product.imageUrl || 'assets/bottle-placeholder.png'" [alt]="product.name" />
+      <div class="product-info">
+        <h3>{{ product.name }}</h3>
+        <p>{{ product.description }}</p>
+        <div class="product-footer">
+          <span class="price">₹{{ product.price }}</span>
+          <span class="stock" [class.out]="product.stock === 0">
+            {{ product.stock > 0 ? 'In Stock' : 'Out of Stock' }}
+          </span>
+        </div>
+        <div style="display:flex; gap:8px; width:100%;">
+          <button
+            class="btn-add-cart"
+            [disabled]="product.stock === 0"
+            (click)="addToCart(product)"
+            style="flex: 1;">
+            {{ addedToCart[product.id!] ? '✓ Added!' : 'Add to Cart' }}
+          </button>
+          <button
+            class="btn-secondary"
+            [disabled]="product.stock === 0"
+            (click)="openCustomizer(product)"
+            style="padding: 10px 16px; border-radius: var(--radius-sm); font-size: 0.92rem; font-weight: 600;">
+            🎨 Customize
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Water Bottle Customization Modal -->
+  <div class="modal-overlay" *ngIf="showCustomizer" (click)="closeCustomizer()">
+    <div class="modal-content customizer-modal" (click)="$event.stopPropagation()" style="max-width: 800px; display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px; padding: 24px; border-radius: 16px;">
+      
+      <!-- Left side: Customization Form -->
+      <div class="customizer-form-section">
+        <h3 style="font-size:1.3rem; font-weight:700; margin-bottom:12px; color:var(--primary);">🎨 Customize Water Bottle</h3>
+        <p style="font-size:0.82rem; color:var(--text-muted); margin-bottom:16px;">Personalize this bottle with your branding details. Business name is required.</p>
+        
+        <form [formGroup]="customizerForm" (ngSubmit)="addCustomizedToCart()">
+          <div class="form-group">
+            <label style="font-weight:600; font-size:0.85rem; margin-bottom:4px; display:block;">Business Name <span style="color:var(--danger)">*</span></label>
+            <input type="text" formControlName="businessName" placeholder="e.g. Acme Corporation" class="form-control" style="width:100%;" (input)="updatePreview()" />
+            <span class="error" *ngIf="customizerForm.get('businessName')?.touched && customizerForm.get('businessName')?.errors?.['required']">
+              Business Name is required.
+            </span>
+          </div>
+
+          <div class="form-group">
+            <label style="font-weight:600; font-size:0.85rem; margin-bottom:4px; display:block;">Tagline or Custom Text</label>
+            <input type="text" formControlName="tagline" placeholder="e.g. Pure & Fresh" class="form-control" style="width:100%;" (input)="updatePreview()" />
+          </div>
+
+          <div class="form-row" style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+            <div class="form-group" style="margin-bottom:0;">
+              <label style="font-weight:600; font-size:0.85rem; margin-bottom:4px; display:block;">Contact Number</label>
+              <input type="text" formControlName="contactNumber" placeholder="e.g. +91 9999988888" class="form-control" style="width:100%;" />
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label style="font-weight:600; font-size:0.85rem; margin-bottom:4px; display:block;">Website</label>
+              <input type="text" formControlName="website" placeholder="e.g. www.acme.com" class="form-control" style="width:100%;" />
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-top:12px;">
+            <label style="font-weight:600; font-size:0.85rem; margin-bottom:4px; display:block;">Brand Logo (Image)</label>
+            <input type="file" (change)="onLogoSelected($event)" accept="image/*" class="form-control" style="width:100%;" />
+            <span style="font-size:0.75rem; color:var(--text-muted);">Optional. Suggest square or transparent PNG.</span>
+          </div>
+
+          <div class="form-group">
+            <label style="font-weight:600; font-size:0.85rem; margin-bottom:4px; display:block;">Customization Notes</label>
+            <textarea formControlName="notes" placeholder="e.g. Prefer blue label background, place logo on top..." rows="2" class="form-control" style="width:100%;"></textarea>
+          </div>
+
+          <div class="form-actions" style="display:flex; gap:12px; margin-top:16px;">
+            <button type="submit" class="btn-primary" [disabled]="customizerForm.invalid" style="flex:1;">Add Customized to Cart</button>
+            <button type="button" class="btn-secondary" (click)="closeCustomizer()">Cancel</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Right side: Live Customization Preview -->
+      <div class="customizer-preview-section" style="display:flex; flex-direction:column; align-items:center; justify-content:center; background:#f0f7ff; border:1px solid var(--border); border-radius:12px; padding:16px; position:relative;">
+        <h4 style="font-weight:700; margin-bottom:12px; color:var(--primary); font-size:0.95rem;">📱 Live Preview</h4>
+        
+        <!-- Interactive Stylized Water Bottle Graphic -->
+        <div class="preview-bottle-container" style="width: 140px; height: 320px; border: 3px solid #cbd5e1; border-radius: 20px 20px 14px 14px; position: relative; background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%); overflow: hidden; box-shadow: 0 8px 24px rgba(26,107,191,0.15);">
+          <!-- Bottle Cap -->
+          <div style="width: 50px; height: 20px; background: #0284c7; margin: 0 auto; border-radius: 4px 4px 0 0; border-bottom: 2px solid #0369a1;"></div>
+          <!-- Bottle Neck -->
+          <div style="width: 70px; height: 30px; background: rgba(255,255,255,0.4); margin: 0 auto; border-left: 2px solid #cbd5e1; border-right: 2px solid #cbd5e1;"></div>
+          
+          <!-- Bottle Label (Customized Area) -->
+          <div class="bottle-label-area" style="position: absolute; top: 100px; left: 0; right: 0; height: 110px; background: linear-gradient(90deg, #1e40af 0%, #3b82f6 50%, #1e40af 100%); color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 6px; text-align: center; box-shadow: inset 0 2px 6px rgba(0,0,0,0.3); border-top: 2px solid #60a5fa; border-bottom: 2px solid #60a5fa; transition: all 0.3s ease;">
+            <!-- Water drop icon -->
+            <span style="font-size:1rem; margin-bottom:2px;">💧</span>
+            <!-- Logo overlay -->
+            <img *ngIf="logoBase64" [src]="logoBase64" alt="Logo preview" style="width: 32px; height: 32px; object-fit: contain; background: white; border-radius: 4px; padding: 2px; margin-bottom: 4px; border: 1px solid #fff;" />
+            <!-- Business Name overlay -->
+            <div class="preview-business-name" style="font-weight: 700; font-size: 0.72rem; line-height: 1.2; word-break: break-all; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+              {{ customizerForm.get('businessName')?.value || 'YOUR BRAND' }}
+            </div>
+            <!-- Tagline overlay -->
+            <div class="preview-tagline" style="font-size: 0.55rem; color: #bae6fd; font-style: italic; margin-top: 2px; word-break: break-all; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+              {{ customizerForm.get('tagline')?.value || 'Your tagline here' }}
+            </div>
+          </div>
+
+          <!-- Bottom reflections -->
+          <div style="position: absolute; bottom: 10px; left: 10px; width: 20px; height: 60px; background: rgba(255,255,255,0.25); border-radius: 99px;"></div>
+        </div>
+
+        <div style="font-size:0.7rem; color:var(--text-muted); text-align:center; margin-top:12px;">Pre-visualized rendering of customized labels.</div>
+      </div>
+
+    </div>
+  </div>
+
+  <p *ngIf="!loading && products.length === 0" class="empty">No products available.</p>
+</div>

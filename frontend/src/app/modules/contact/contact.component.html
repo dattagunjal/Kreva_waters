@@ -1,0 +1,86 @@
+<div class="contact-container" style="max-width: 900px; margin: 0 auto; padding: 2rem 1rem;">
+  <h2 class="page-title" style="font-size:2rem; font-weight:700; color:var(--primary); margin-bottom:0.5rem; text-align:center;">📞 Contact Us</h2>
+  <p class="company-intro" style="text-align:center; font-size:1.05rem; margin-bottom:2.5rem;">Have questions or need bulk delivery? We are here to help.</p>
+
+  <div *ngIf="successMsg" class="success-banner" style="margin-bottom:1.5rem;">
+    {{ successMsg }}
+  </div>
+
+  <div style="display:grid; grid-template-columns: 1fr 1.3fr; gap:2.5rem; align-items:start;">
+    
+    <!-- Left: Info Cards -->
+    <div style="display:flex; flex-direction:column; gap:1.5rem;">
+      <div style="background:white; border:1px solid var(--border); padding:1.5rem; border-radius:14px; box-shadow:var(--shadow);">
+        <div style="font-size:1.5rem; margin-bottom:0.5rem;">📍 Location</div>
+        <h4 style="font-weight:700; font-size:0.95rem; margin-bottom:0.25rem;">Ugam Waters Office</h4>
+        <p style="color:var(--text-muted); font-size:0.875rem; line-height:1.5;">
+          Survey No. 42, Near Kothrud Depot,<br>
+          Kothrud, Pune - 411038,<br>
+          Maharashtra, India.
+        </p>
+      </div>
+
+      <div style="background:white; border:1px solid var(--border); padding:1.5rem; border-radius:14px; box-shadow:var(--shadow);">
+        <div style="font-size:1.5rem; margin-bottom:0.5rem;">📞 Call / WhatsApp</div>
+        <p style="color:var(--text-muted); font-size:0.875rem; line-height:1.5; font-weight:500;">
+          Mobile: <a href="tel:+918390252489" style="color:var(--primary); text-decoration:none; font-weight:600;">+91 8390252489</a>
+        </p>
+        <p style="color:var(--text-muted); font-size:0.75rem; margin-top:0.25rem;">Support available Monday to Saturday: 9:00 AM - 7:00 PM</p>
+      </div>
+
+      <div style="background:white; border:1px solid var(--border); padding:1.5rem; border-radius:14px; box-shadow:var(--shadow);">
+        <div style="font-size:1.5rem; margin-bottom:0.5rem;">✉️ Support Email</div>
+        <p style="color:var(--text-muted); font-size:0.875rem;">
+          Email: <a href="mailto:support@ugamwaters.com" style="color:var(--primary); text-decoration:none; font-weight:600;">support&#64;ugamwaters.com</a>
+        </p>
+      </div>
+    </div>
+
+    <!-- Right: Form -->
+    <div style="background:white; border:1px solid var(--border); padding:2rem; border-radius:16px; box-shadow:var(--shadow);">
+      <h3 style="font-size:1.2rem; font-weight:700; color:var(--text); margin-bottom:1.25rem;">Send a Message</h3>
+      
+      <form [formGroup]="contactForm" (ngSubmit)="submitMessage()">
+        <div class="form-group">
+          <label style="font-weight:600; font-size:0.875rem; margin-bottom:4px; display:block;">Your Name</label>
+          <input type="text" formControlName="name" placeholder="e.g. John Doe" class="form-control" style="width:100%;" />
+          <span class="error" *ngIf="contactForm.get('name')?.touched && contactForm.get('name')?.errors?.['required']">
+            Name is required.
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label style="font-weight:600; font-size:0.875rem; margin-bottom:4px; display:block;">Email or Mobile Number</label>
+          <input type="text" formControlName="emailOrMobile" placeholder="e.g. john.doe&#64;example.com or 9999988888" class="form-control" style="width:100%;" />
+          <span class="error" *ngIf="contactForm.get('emailOrMobile')?.touched && contactForm.get('emailOrMobile')?.errors?.['required']">
+            Contact information is required.
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label style="font-weight:600; font-size:0.875rem; margin-bottom:4px; display:block;">Subject</label>
+          <input type="text" formControlName="subject" placeholder="e.g. Bulk order query, Franchise" class="form-control" style="width:100%;" />
+          <span class="error" *ngIf="contactForm.get('subject')?.touched && contactForm.get('subject')?.errors?.['required']">
+            Subject is required.
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label style="font-weight:600; font-size:0.875rem; margin-bottom:4px; display:block;">Message</label>
+          <textarea formControlName="message" placeholder="Type your query here..." rows="4" class="form-control" style="width:100%;"></textarea>
+          <span class="error" *ngIf="contactForm.get('message')?.touched && contactForm.get('message')?.errors?.['required']">
+            Message details are required.
+          </span>
+          <span class="error" *ngIf="contactForm.get('message')?.touched && contactForm.get('message')?.errors?.['minlength']">
+            Please enter at least 10 characters.
+          </span>
+        </div>
+
+        <button type="submit" class="btn-primary" [disabled]="contactForm.invalid || loading" style="width:100%; margin-top:0.5rem;">
+          {{ loading ? 'Sending Message...' : '✉️ Send Message' }}
+        </button>
+      </form>
+    </div>
+
+  </div>
+</div>

@@ -1,0 +1,301 @@
+<div class="admin-container container">
+  <h2>🔧 Admin Dashboard</h2>
+
+  <!-- Tabs Navigation -->
+  <div class="tabs mb-6">
+    <button [class.active]="activeTab === 'overview'"   (click)="activeTab = 'overview'">📈 Overview</button>
+    <button [class.active]="activeTab === 'products'"   (click)="activeTab = 'products'">📦 Products</button>
+    <button [class.active]="activeTab === 'categories'" (click)="activeTab = 'categories'">🏷️ Categories</button>
+    <button [class.active]="activeTab === 'orders'"     (click)="activeTab = 'orders'">📋 Orders</button>
+    <button [class.active]="activeTab === 'users'"      (click)="activeTab = 'users'">👥 Users</button>
+  </div>
+
+  <!-- ── OVERVIEW TAB ──────────────────────────────────────────────── -->
+  <div *ngIf="activeTab === 'overview'">
+    <div class="stats-grid" *ngIf="stats">
+      <div class="stat-card">
+        <span>Total Users</span>
+        <strong>{{ stats.totalUsers }}</strong>
+      </div>
+      <div class="stat-card">
+        <span>Total Products</span>
+        <strong>{{ stats.totalProducts }}</strong>
+      </div>
+      <div class="stat-card">
+        <span>Total Orders</span>
+        <strong>{{ stats.totalOrders }}</strong>
+      </div>
+      <div class="stat-card">
+        <span>Total Revenue</span>
+        <strong>₹{{ stats.totalRevenue | number }}</strong>
+      </div>
+      <div class="stat-card warning">
+        <span>Pending Orders</span>
+        <strong>{{ stats.pendingOrders }}</strong>
+      </div>
+      <div class="stat-card success">
+        <span>Delivered Orders</span>
+        <strong>{{ stats.deliveredOrders }}</strong>
+      </div>
+      <div class="stat-card danger">
+        <span>Cancelled Orders</span>
+        <strong>{{ stats.cancelledOrders }}</strong>
+      </div>
+    </div>
+    <div *ngIf="!stats" class="loading-text">Loading statistics...</div>
+  </div>
+
+  <!-- ── PRODUCTS TAB ──────────────────────────────────────────────── -->
+  <div *ngIf="activeTab === 'products'">
+    <div class="tab-header mb-4">
+      <h3>Manage Products</h3>
+      <button class="btn-primary" (click)="openAddForm()">+ Add Product</button>
+    </div>
+
+    <!-- Filters & Search -->
+    <div class="filters-row mb-4">
+      <input type="text" [(ngModel)]="productSearch" (input)="productPage = 1" placeholder="Search products..." class="form-control" style="max-width:300px;" />
+      <select [(ngModel)]="productCategoryFilter" (change)="productPage = 1" class="form-control" style="max-width:200px; margin-left:12px;">
+        <option value="">All Categories</option>
+        <option *ngFor="let cat of categories" [value]="cat.name">{{ cat.name }}</option>
+      </select>
+    </div>
+
+    <!-- Product Form (Add/Edit) -->
+    <div class="product-form glass-card p-6 mb-6" *ngIf="showForm">
+      <h4>{{ editingProduct ? 'Edit Product' : 'Add New Product' }}</h4>
+      <form [formGroup]="productForm" (ngSubmit)="saveProduct()">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Name</label>
+            <input type="text" formControlName="name" placeholder="e.g. 500ml Pack" />
+          </div>
+          <div class="form-group">
+            <label>Price (₹)</label>
+            <input type="number" formControlName="price" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Stock</label>
+            <input type="number" formControlName="stock" />
+          </div>
+          <div class="form-group">
+            <label>Category</label>
+            <select formControlName="category" style="padding:10px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle); background:var(--bg-input); color:var(--text-primary);">
+              <option [ngValue]="null">Uncategorized</option>
+              <option *ngFor="let cat of categories" [ngValue]="cat">{{ cat.name }}</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Image URL</label>
+          <input type="text" formControlName="imageUrl" placeholder="https://..." />
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea formControlName="description" rows="2"></textarea>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn-primary" [disabled]="productForm.invalid">{{ editingProduct ? 'Update' : 'Add' }}</button>
+          <button type="button" class="btn-secondary" (click)="showForm = false">Cancel</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Products Table -->
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Category</th>
+          <th>Price</th>
+          <th>Stock</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let p of getPaginatedProducts()">
+          <td>{{ p.name }}</td>
+          <td>{{ p.category?.name || 'Uncategorized' }}</td>
+          <td>₹{{ p.price }}</td>
+          <td>{{ p.stock }}</td>
+          <td>
+            <button class="btn-edit" (click)="editProduct(p)">Edit</button>
+            <button class="btn-delete" style="margin-left:8px;" (click)="deleteProduct(p.id!)">Delete</button>
+          </td>
+        </tr>
+        <tr *ngIf="getFilteredProducts().length === 0">
+          <td colspan="5" class="text-center text-muted">No products found.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Pagination -->
+    <div class="pagination-row mt-4" *ngIf="getProductPageCount() > 1">
+      <button [disabled]="productPage === 1" (click)="productPage = productPage - 1" class="btn-secondary">Prev</button>
+      <span>Page {{ productPage }} of {{ getProductPageCount() }}</span>
+      <button [disabled]="productPage === getProductPageCount()" (click)="productPage = productPage + 1" class="btn-secondary">Next</button>
+    </div>
+  </div>
+
+  <!-- ── CATEGORIES TAB ────────────────────────────────────────────── -->
+  <div *ngIf="activeTab === 'categories'">
+    <div class="tab-header mb-4">
+      <h3>Manage Categories</h3>
+      <button class="btn-primary" (click)="openAddCategoryForm()">+ Add Category</button>
+    </div>
+
+    <!-- Category Filter/Search -->
+    <div class="filters-row mb-4">
+      <input type="text" [(ngModel)]="categorySearch" (input)="categoryPage = 1" placeholder="Search categories..." class="form-control" style="max-width:300px;" />
+    </div>
+
+    <!-- Category Form -->
+    <div class="product-form glass-card p-6 mb-6" *ngIf="showCategoryForm">
+      <h4>{{ editingCategory ? 'Edit Category' : 'Add New Category' }}</h4>
+      <form [formGroup]="categoryForm" (ngSubmit)="saveCategory()">
+        <div class="form-group">
+          <label>Category Name</label>
+          <input type="text" formControlName="name" placeholder="e.g. Sparkling Water" />
+        </div>
+        <div class="form-actions mt-3">
+          <button type="submit" class="btn-primary" [disabled]="categoryForm.invalid">{{ editingCategory ? 'Update' : 'Add' }}</button>
+          <button type="button" class="btn-secondary" (click)="showCategoryForm = false">Cancel</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Categories Table -->
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Category Name</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let cat of getPaginatedCategories()">
+          <td>{{ cat.name }}</td>
+          <td>
+            <button class="btn-edit" (click)="editCategory(cat)">Edit</button>
+            <button class="btn-delete" style="margin-left:8px;" (click)="deleteCategory(cat.id!)">Delete</button>
+          </td>
+        </tr>
+        <tr *ngIf="getFilteredCategories().length === 0">
+          <td colspan="2" class="text-center text-muted">No categories found.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Pagination -->
+    <div class="pagination-row mt-4" *ngIf="getCategoryPageCount() > 1">
+      <button [disabled]="categoryPage === 1" (click)="categoryPage = categoryPage - 1" class="btn-secondary">Prev</button>
+      <span>Page {{ categoryPage }} of {{ getCategoryPageCount() }}</span>
+      <button [disabled]="categoryPage === getCategoryPageCount()" (click)="categoryPage = categoryPage + 1" class="btn-secondary">Next</button>
+    </div>
+  </div>
+
+  <!-- ── ORDERS TAB ────────────────────────────────────────────────── -->
+  <div *ngIf="activeTab === 'orders'">
+    <h3>Manage Orders</h3>
+
+    <!-- Filters & Search -->
+    <div class="filters-row mb-4">
+      <input type="text" [(ngModel)]="orderSearch" (input)="orderPage = 1" placeholder="Search orders by ID/Address..." class="form-control" style="max-width:300px;" />
+      <select [(ngModel)]="orderStatusFilter" (change)="orderPage = 1" class="form-control" style="max-width:200px; margin-left:12px;">
+        <option value="">All Statuses</option>
+        <option value="PENDING">Pending</option>
+        <option value="CONFIRMED">Confirmed</option>
+        <option value="DELIVERED">Delivered</option>
+        <option value="CANCELLED">Cancelled</option>
+      </select>
+    </div>
+
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Order ID</th>
+          <th>Address</th>
+          <th>Amount</th>
+          <th>Status</th>
+          <th>Update Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let order of getPaginatedOrders()">
+          <td>#{{ order.id }}</td>
+          <td>{{ order.address }}</td>
+          <td>₹{{ order.totalAmount }}</td>
+          <td><span class="status" [class]="order.status.toLowerCase()">{{ order.status }}</span></td>
+          <td>
+            <select [value]="order.status" (change)="updateOrderStatus(order.id!, $any($event.target).value)" style="padding:4px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle); background:var(--bg-input); color:var(--text-primary);">
+              <option value="PENDING">Pending</option>
+              <option value="CONFIRMED">Confirmed</option>
+              <option value="DELIVERED">Delivered</option>
+              <option value="CANCELLED">Cancelled</option>
+            </select>
+          </td>
+        </tr>
+        <tr *ngIf="getFilteredOrders().length === 0">
+          <td colspan="5" class="text-center text-muted">No orders found.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Pagination -->
+    <div class="pagination-row mt-4" *ngIf="getOrderPageCount() > 1">
+      <button [disabled]="orderPage === 1" (click)="orderPage = orderPage - 1" class="btn-secondary">Prev</button>
+      <span>Page {{ orderPage }} of {{ getOrderPageCount() }}</span>
+      <button [disabled]="orderPage === getOrderPageCount()" (click)="orderPage = orderPage + 1" class="btn-secondary">Next</button>
+    </div>
+  </div>
+
+  <!-- ── USERS TAB ─────────────────────────────────────────────────── -->
+  <div *ngIf="activeTab === 'users'">
+    <h3>Manage Users</h3>
+
+    <!-- Search -->
+    <div class="filters-row mb-4">
+      <input type="text" [(ngModel)]="userSearch" (input)="userPage = 1" placeholder="Search users by name/email/mobile..." class="form-control" style="max-width:300px;" />
+    </div>
+
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Mobile Number</th>
+          <th>Role</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let u of getPaginatedUsers()">
+          <td>{{ u.name }}</td>
+          <td>{{ u.email || 'N/A' }}</td>
+          <td>{{ u.mobileNumber || 'N/A' }}</td>
+          <td><strong>{{ u.role }}</strong></td>
+          <td>
+            <button class="btn-edit" (click)="updateUserRole(u.id!, u.role!)">
+              Toggle Role
+            </button>
+            <button class="btn-delete" style="margin-left:8px;" (click)="deleteUser(u.id!)">
+              Delete
+            </button>
+          </td>
+        </tr>
+        <tr *ngIf="getFilteredUsers().length === 0">
+          <td colspan="5" class="text-center text-muted">No users found.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Pagination -->
+    <div class="pagination-row mt-4" *ngIf="getUserPageCount() > 1">
+      <button [disabled]="userPage === 1" (click)="userPage = userPage - 1" class="btn-secondary">Prev</button>
+      <span>Page {{ userPage }} of {{ getUserPageCount() }}</span>
+      <button [disabled]="userPage === getUserPageCount()" (click)="userPage = userPage + 1" class="btn-secondary">Next</button>
+    </div>
+  </div>
+</div>

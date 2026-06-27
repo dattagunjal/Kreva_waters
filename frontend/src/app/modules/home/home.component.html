@@ -1,0 +1,71 @@
+<div class="home-page">
+
+  <!-- Hero Section -->
+  <section class="home-hero">
+    <div class="home-hero-content">
+      <h1>Pure Water.<br>Pure Life.</h1>
+      <p>Quality packaged drinking water delivered fresh to your home, office, and events.</p>
+      <div class="home-cta-group">
+        <a routerLink="/products" class="cta-btn cta-primary">Shop Now →</a>
+        <a *ngIf="!authService.isLoggedIn()" routerLink="/auth/register" class="cta-btn cta-secondary">
+          Get Started
+        </a>
+        <a *ngIf="authService.isLoggedIn()" routerLink="/orders" class="cta-btn cta-secondary">
+          My Orders
+        </a>
+      </div>
+    </div>
+    <div class="home-hero-graphic">💧</div>
+  </section>
+
+  <!-- Features -->
+  <section class="home-features">
+    <div class="feature-card">
+      <div class="feature-icon">🏔️</div>
+      <h3>Pure Source</h3>
+      <p>Sourced from natural springs and purified through a multi-stage filtration process.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🚚</div>
+      <h3>Fast Delivery</h3>
+      <p>Same-day delivery available across Pune. Order before noon, delivered by evening.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🧪</div>
+      <h3>Lab Tested</h3>
+      <p>Every batch is tested for purity, pH balance, and mineral content before dispatch.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">♻️</div>
+      <h3>Eco Packaging</h3>
+      <p>BPA-free, recyclable bottles. Return empties for a discount on your next order.</p>
+    </div>
+  </section>
+
+  <!-- Products preview -->
+  <section class="home-products-preview">
+    <h2>Available Packs</h2>
+    <div class="preview-cards">
+      <div class="preview-card">
+        <span class="preview-size">200ml</span>
+        <p>₹5</p>
+        <small>Perfect for meetings & events</small>
+      </div>
+      <div class="preview-card featured">
+        <span class="preview-badge">Popular</span>
+        <span class="preview-size">500ml</span>
+        <p>₹10</p>
+        <small>Everyday carry bottle</small>
+      </div>
+      <div class="preview-card">
+        <span class="preview-size">1L</span>
+        <p>₹20</p>
+        <small>Home & office use</small>
+      </div>
+    </div>
+    <a routerLink="/products" class="cta-btn cta-primary" style="margin-top:1.5rem;display:inline-block">
+      View All Products →
+    </a>
+  </section>
+
+</div>

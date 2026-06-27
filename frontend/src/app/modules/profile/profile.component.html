@@ -1,0 +1,158 @@
+<div class="profile-container container">
+  <h2>👤 User Profile</h2>
+
+  <div class="profile-grid">
+    <!-- Left: Profile Info & Password Change -->
+    <div class="profile-main">
+      
+      <!-- Profile Details Form -->
+      <div class="glass-card p-6 mb-6">
+        <h3>Update Profile Details</h3>
+        <div class="alert alert-success" *ngIf="profileSuccess">{{ profileSuccess }}</div>
+        <div class="alert alert-danger" *ngIf="profileError">{{ profileError }}</div>
+
+        <form [formGroup]="profileForm" (ngSubmit)="saveProfile()">
+          <!-- Profile Image Upload -->
+          <div class="profile-image-section">
+            <div class="avatar-preview">
+              <img *ngIf="profileForm.value.profileImage" [src]="profileForm.value.profileImage" alt="Profile Image" />
+              <div *ngIf="!profileForm.value.profileImage" class="avatar-placeholder">
+                {{ userProfile?.name?.charAt(0)?.toUpperCase() || 'U' }}
+              </div>
+            </div>
+            <div class="image-buttons">
+              <input type="file" id="profile-upload" (change)="onImageSelected($event)" accept="image/*" style="display:none;" />
+              <label for="profile-upload" class="btn-secondary" style="cursor:pointer; display:inline-block; padding:8px 16px;">
+                {{ imageUploading ? 'Uploading...' : 'Upload Photo' }}
+              </label>
+              <button type="button" class="btn-delete" style="margin-left:8px;" *ngIf="profileForm.value.profileImage" (click)="removeImage()">
+                Remove
+              </button>
+            </div>
+          </div>
+
+          <div class="form-group mt-4">
+            <label for="prof-name">Full Name</label>
+            <input id="prof-name" type="text" formControlName="name" class="form-control" />
+            <span class="error" *ngIf="profileForm.get('name')?.touched && profileForm.get('name')?.errors?.['required']">
+              Name is required.
+            </span>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="prof-email">Email Address</label>
+              <input id="prof-email" type="email" formControlName="email" class="form-control" placeholder="Optional" />
+              <span class="error" *ngIf="profileForm.get('email')?.touched && profileForm.get('email')?.errors?.['email']">
+                Please enter a valid email address.
+              </span>
+            </div>
+
+            <div class="form-group">
+              <label for="prof-mobile">Mobile Number</label>
+              <input id="prof-mobile" type="text" formControlName="mobileNumber" class="form-control" placeholder="Optional" />
+              <span class="error" *ngIf="profileForm.get('mobileNumber')?.touched && profileForm.get('mobileNumber')?.errors?.['pattern']">
+                Please enter a valid 10-digit mobile number.
+              </span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="prof-address">Delivery Address</label>
+            <textarea id="prof-address" formControlName="address" rows="3" class="form-control" placeholder="e.g. 12B Baker Street, London"></textarea>
+          </div>
+
+          <button type="submit" class="btn-primary" [disabled]="loading">
+            {{ loading ? 'Saving...' : 'Save Profile Changes' }}
+          </button>
+        </form>
+      </div>
+
+      <!-- Change Password Form -->
+      <div class="glass-card p-6">
+        <h3>Change Password</h3>
+        <div class="alert alert-success" *ngIf="passwordSuccess">{{ passwordSuccess }}</div>
+        <div class="alert alert-danger" *ngIf="passwordError">{{ passwordError }}</div>
+
+        <form [formGroup]="passwordForm" (ngSubmit)="changePassword()">
+          <div class="form-group">
+            <label for="old-pass">Current Password</label>
+            <input id="old-pass" type="password" formControlName="oldPassword" class="form-control" />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="new-pass">New Password</label>
+              <input id="new-pass" type="password" formControlName="newPassword" class="form-control" />
+              <span class="error" *ngIf="newPasswordCtrl.touched && newPasswordCtrl.errors">
+                Password does not meet the security policy.
+              </span>
+              
+              <!-- Criteria checklist -->
+              <ul class="pw-checklist" *ngIf="newPasswordCtrl.touched || pwVal.length > 0">
+                <li [class.met]="pwMinLen">
+                  <span class="check-icon">{{ pwMinLen ? '✅' : '○' }}</span> At least 8 characters
+                </li>
+                <li [class.met]="pwUppercase">
+                  <span class="check-icon">{{ pwUppercase ? '✅' : '○' }}</span> One uppercase letter
+                </li>
+                <li [class.met]="pwLowercase">
+                  <span class="check-icon">{{ pwLowercase ? '✅' : '○' }}</span> One lowercase letter
+                </li>
+                <li [class.met]="pwNumber">
+                  <span class="check-icon">{{ pwNumber ? '✅' : '○' }}</span> One number
+                </li>
+                <li [class.met]="pwSpecial">
+                  <span class="check-icon">{{ pwSpecial ? '✅' : '○' }}</span> One special character (!&#64;#$…)
+                </li>
+              </ul>
+            </div>
+
+            <div class="form-group">
+              <label for="confirm-pass">Confirm New Password</label>
+              <input id="confirm-pass" type="password" formControlName="confirmNewPassword" class="form-control" />
+              <span class="error" *ngIf="passwordForm.touched && passwordForm.errors?.['passwordMismatch']">
+                Passwords do not match.
+              </span>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-primary" [disabled]="passwordLoading || passwordForm.invalid">
+            {{ passwordLoading ? 'Changing...' : 'Change Password' }}
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Right: Account Metadata & Recent Orders -->
+    <div class="profile-sidebar">
+      <!-- Metadata -->
+      <div class="glass-card p-6 mb-6">
+        <h3>Account Information</h3>
+        <div class="meta-item">
+          <span>Member Since</span>
+          <strong>{{ userProfile?.createdAt | date:'mediumDate' }}</strong>
+        </div>
+        <div class="meta-item">
+          <span>Role</span>
+          <strong>{{ userProfile?.role }}</strong>
+        </div>
+      </div>
+
+      <!-- Recent Orders -->
+      <div class="glass-card p-6">
+        <h3>Recent Orders</h3>
+        <div *ngIf="orders.length === 0" class="text-muted">No orders placed yet.</div>
+        
+        <div *ngFor="let order of orders" class="recent-order-item">
+          <div class="order-id">Order #{{ order.id }}</div>
+          <div class="order-details">
+            <span>{{ order.createdAt | date:'d MMM y, h:mm a' }}</span>
+            <span class="status" [ngClass]="order.status.toLowerCase()">{{ order.status }}</span>
+          </div>
+          <div class="order-total-price">Total: ₹{{ order.totalAmount }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

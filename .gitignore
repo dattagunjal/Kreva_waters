@@ -1,0 +1,22 @@
+# Backend
+backend/target/
+backend/.mvn/
+*.jar
+*.class
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env / secrets
+*.env

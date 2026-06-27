@@ -1,0 +1,83 @@
+<nav class="navbar">
+  <!-- Brand / Logo -->
+  <a routerLink="/home" class="brand">💧 Ugam Waters</a>
+
+  <div class="nav-links">
+    <a routerLink="/home"     routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}">🏠 Home</a>
+    <a routerLink="/products" routerLinkActive="active">Products</a>
+    <!-- FIX #3 — About & Contact links -->
+    <a routerLink="/about"    routerLinkActive="active">About Us</a>
+    <a routerLink="/contact"  routerLinkActive="active">Contact</a>
+
+    <ng-container *ngIf="authService.isLoggedIn()">
+      <a routerLink="/cart" routerLinkActive="active">
+        🛒 Cart
+        <span class="cart-badge" *ngIf="cartService.getCount() > 0">
+          {{ cartService.getCount() }}
+        </span>
+      </a>
+      <a routerLink="/orders" routerLinkActive="active">My Orders</a>
+      <a routerLink="/profile" routerLinkActive="active">👤 Profile</a>
+      <a routerLink="/admin"       *ngIf="authService.isAdmin()" routerLinkActive="active">Admin</a>
+      <a routerLink="/admin/sales" *ngIf="authService.isAdmin()" routerLinkActive="active">📊 Sales</a>
+      <button class="btn-logout" (click)="logout()">Logout</button>
+    </ng-container>
+
+    <ng-container *ngIf="!authService.isLoggedIn()">
+      <a routerLink="/auth/login"    routerLinkActive="active">Login</a>
+      <a routerLink="/auth/register" routerLinkActive="active" class="btn-register">Register</a>
+    </ng-container>
+  </div>
+</nav>
+
+<!-- Banner only shown on non-home routes -->
+<div class="ugam-banner" *ngIf="!isHomePage">
+  <h1>Welcome to Ugam Waters</h1>
+  <p>Pure Water. Pure Life. Quality packaged drinking water for homes, offices and events.</p>
+</div>
+
+<main class="main-content">
+  <router-outlet></router-outlet>
+</main>
+
+<footer class="footer">
+  <div class="footer-links">
+    <a routerLink="/about">About Us</a>
+    <span>·</span>
+    <a routerLink="/contact">Contact Us</a>
+    <span>·</span>
+    <a routerLink="/products">Products</a>
+  </div>
+  <p>© 2026 Ugam Waters — Pure Water, Pure Life 💧</p>
+</footer>
+
+<!--
+  FIX #3 — Persistent WhatsApp Support Button
+  Always visible in the bottom-right corner on every page.
+  Update the href to point to the real admin WhatsApp number.
+-->
+<a class="whatsapp-fab"
+   href="https://wa.me/918390252489?text=Hello%20Ugam%20Waters%2C%20I%20need%20help%20with%20my%20order."
+   target="_blank"
+   rel="noopener noreferrer"
+   title="Chat with us on WhatsApp">
+  <svg viewBox="0 0 24 24" fill="currentColor" class="wa-fab-icon">
+    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15
+             -.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075
+             -.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059
+             -.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52
+             .149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52
+             -.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51
+             -.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372
+             -.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074
+             .149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625
+             .712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413
+             .248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+    <path d="M12 0C5.373 0 0 5.373 0 12c0 2.114.549 4.096 1.508 5.814L.057 23.8
+             l6.166-1.617A11.946 11.946 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0z
+             m0 21.818a9.81 9.81 0 01-5.003-1.367l-.36-.213-3.664.96.977-3.566
+             -.234-.377A9.818 9.818 0 012.182 12C2.182 6.58 6.58 2.182 12 2.182
+             S21.818 6.58 21.818 12 17.42 21.818 12 21.818z"/>
+  </svg>
+  <span class="wa-fab-label">Support</span>
+</a>

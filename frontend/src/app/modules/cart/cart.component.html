@@ -1,0 +1,92 @@
+<div class="cart-container">
+  <h2 class="page-title">🛒 Your Cart</h2>
+
+  <!-- Empty state -->
+  <div *ngIf="items.length === 0" class="empty-cart">
+    <div class="empty-icon">🛒</div>
+    <p>Your cart is empty.</p>
+    <a routerLink="/products" class="btn-primary">Browse Products</a>
+  </div>
+
+  <!-- Cart items -->
+  <div *ngIf="items.length > 0">
+
+    <div class="cart-item" *ngFor="let item of items">
+      <img
+        [src]="item.product.imageUrl || 'assets/bottle-placeholder.png'"
+        [alt]="item.product.name"
+      />
+
+      <div class="item-details">
+        <h4>{{ item.product.name }}</h4>
+        <p class="unit-price">₹{{ item.product.price }} each</p>
+        <p class="stock-info" [class.low-stock]="item.product.stock <= 5">
+          {{ item.product.stock > 0 ? 'In stock: ' + item.product.stock : 'Out of stock' }}
+        </p>
+
+        <!-- Customization details -->
+        <div class="item-customization text-sm mt-2" *ngIf="item.customization" style="background:#f8fafc; border:1px solid #e2e8f0; padding:8px 12px; border-radius:6px; margin-top:8px;">
+          <div style="font-weight:600; color:var(--primary); margin-bottom:4px; font-size:0.82rem; text-transform:uppercase; letter-spacing:0.5px;">🎨 Customized Design:</div>
+          <div style="font-size:0.88rem; line-height:1.4;">
+            <div><strong>Business:</strong> {{ item.customization.businessName }}</div>
+            <div *ngIf="item.customization.tagline"><strong>Tagline:</strong> {{ item.customization.tagline }}</div>
+            <div *ngIf="item.customization.contactNumber"><strong>Contact:</strong> {{ item.customization.contactNumber }}</div>
+            <div *ngIf="item.customization.website"><strong>Website:</strong> {{ item.customization.website }}</div>
+            <div *ngIf="item.customization.notes" style="color:var(--text-muted); font-size:0.8rem; margin-top:2px;">
+              <strong>Notes:</strong> {{ item.customization.notes }}
+            </div>
+            <div *ngIf="item.customization.logoUrl" style="margin-top:6px;">
+              <strong>Logo:</strong> <img [src]="item.customization.logoUrl" alt="Logo preview" style="width:36px; height:36px; object-fit:contain; display:inline-block; vertical-align:middle; margin-left:6px; border:1.5px solid var(--border); padding:2px; background:white; border-radius:4px;"/>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quantity controls: − input + -->
+      <div class="qty-control">
+        <button
+          (click)="updateQty(item, item.quantity - 1, item.product.stock)"
+          [disabled]="item.quantity <= 1"
+          aria-label="Decrease quantity"
+        >−</button>
+
+        <input
+          class="qty-input"
+          type="number"
+          [value]="item.quantity"
+          min="1"
+          [max]="item.product.stock"
+          (change)="onInputChange($event, item, item.product.stock)"
+          aria-label="Quantity"
+        />
+
+        <button
+          (click)="updateQty(item, item.quantity + 1, item.product.stock)"
+          [disabled]="item.quantity >= item.product.stock"
+          aria-label="Increase quantity"
+        >+</button>
+      </div>
+
+      <span class="item-total">₹{{ item.product.price * item.quantity }}</span>
+
+      <button class="btn-remove" (click)="remove(item)" aria-label="Remove item">✕</button>
+    </div>
+
+    <!-- Cart Summary -->
+    <div class="cart-summary">
+      <div class="summary-rows">
+        <div class="summary-row" *ngFor="let item of items">
+          <span>{{ item.product.name }} × {{ item.quantity }}</span>
+          <span>₹{{ item.product.price * item.quantity }}</span>
+        </div>
+      </div>
+      <div class="summary-divider"></div>
+      <div class="total">
+        <span>Total ({{ cartService.getCount() }} item<span *ngIf="cartService.getCount() !== 1">s</span>)</span>
+        <strong>₹{{ cartService.getTotal() }}</strong>
+      </div>
+      <button class="btn-checkout" (click)="checkout()">Proceed to Checkout →</button>
+      <button class="btn-clear" (click)="clearCart()">Clear Cart</button>
+    </div>
+  </div>
+</div>

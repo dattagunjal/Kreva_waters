@@ -1,0 +1,140 @@
+<div class="sales-container">
+  <h2 class="page-title">📊 Sales Dashboard</h2>
+
+  <div class="tabs">
+    <button [class.active]="activeTab === 'daily'" (click)="activeTab = 'daily'">📅 Daily Sales</button>
+    <button [class.active]="activeTab === 'monthly'" (click)="activeTab = 'monthly'">📆 Monthly Sales</button>
+  </div>
+
+  <!-- ===== DAILY TAB ===== -->
+  <div *ngIf="activeTab === 'daily'">
+    <div class="filter-bar">
+      <label>Select Date:</label>
+      <input type="date" [(ngModel)]="selectedDate" (change)="onDateChange()" />
+      <button class="btn-export" (click)="exportDailyPdf()" [disabled]="dailyExporting || !dailyData">
+        {{ dailyExporting ? '⏳ Exporting...' : '📄 Export PDF' }}
+      </button>
+    </div>
+
+    <div class="loading" *ngIf="dailyLoading">Loading...</div>
+
+    <div *ngIf="dailyData && !dailyLoading">
+      <div class="stats-grid">
+        <div class="stat-card blue"><span class="stat-label">Total Orders</span><strong>{{ dailyData.totalOrders }}</strong></div>
+        <div class="stat-card green"><span class="stat-label">Total Revenue</span><strong>₹{{ dailyData.totalRevenue | number:'1.2-2' }}</strong></div>
+        <div class="stat-card orange"><span class="stat-label">Items Sold</span><strong>{{ dailyData.totalItemsSold }}</strong></div>
+        <div class="stat-card purple"><span class="stat-label">Delivered</span><strong>{{ dailyData.deliveredOrders }}</strong></div>
+        <div class="stat-card yellow"><span class="stat-label">Pending</span><strong>{{ dailyData.pendingOrders }}</strong></div>
+        <div class="stat-card red"><span class="stat-label">Cancelled</span><strong>{{ dailyData.cancelledOrders }}</strong></div>
+      </div>
+
+      <div class="section-card" *ngIf="dailyData.topProducts?.length">
+        <h3>🏆 Top Products</h3>
+        <table class="data-table">
+          <thead><tr><th>#</th><th>Product</th><th>Qty Sold</th><th>Revenue</th></tr></thead>
+          <tbody>
+            <tr *ngFor="let p of dailyData.topProducts; let i = index">
+              <td>{{ i + 1 }}</td><td>{{ p.name }}</td>
+              <td>{{ p.quantitySold }}</td><td>₹{{ p.revenue | number:'1.2-2' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="section-card" *ngIf="dailyData.orders?.length">
+        <h3>📋 Orders on {{ dailyData.date }}</h3>
+        <table class="data-table">
+          <thead><tr><th>Order ID</th><th>Customer</th><th>Amount</th><th>Status</th><th>Time</th></tr></thead>
+          <tbody>
+            <tr *ngFor="let o of dailyData.orders">
+              <td>#{{ o.id }}</td><td>{{ o.customer }}</td>
+              <td>₹{{ o.amount | number:'1.2-2' }}</td>
+              <td><span class="status" [class]="o.status.toLowerCase()">{{ o.status }}</span></td>
+              <td>{{ o.time | date:'shortTime' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div *ngIf="dailyData.totalOrders === 0" class="empty">No orders found for {{ dailyData.date }}</div>
+    </div>
+  </div>
+
+  <!-- ===== MONTHLY TAB ===== -->
+  <div *ngIf="activeTab === 'monthly'">
+    <div class="filter-bar">
+      <label>Month:</label>
+      <select [(ngModel)]="selectedMonth" (change)="onMonthChange()">
+        <option *ngFor="let m of months" [value]="m.value">{{ m.label }}</option>
+      </select>
+      <label>Year:</label>
+      <select [(ngModel)]="selectedYear" (change)="onYearChange()">
+        <option *ngFor="let y of years" [value]="y">{{ y }}</option>
+      </select>
+      <button class="btn-export" (click)="exportMonthlyPdf()" [disabled]="monthlyExporting || !monthlyData">
+        {{ monthlyExporting ? '⏳ Exporting...' : '📄 Export PDF' }}
+      </button>
+    </div>
+
+    <div class="loading" *ngIf="monthlyLoading">Loading...</div>
+
+    <div *ngIf="monthlyData && !monthlyLoading">
+      <div class="stats-grid">
+        <div class="stat-card blue"><span class="stat-label">Total Orders</span><strong>{{ monthlyData.totalOrders }}</strong></div>
+        <div class="stat-card green"><span class="stat-label">Total Revenue</span><strong>₹{{ monthlyData.totalRevenue | number:'1.2-2' }}</strong></div>
+        <div class="stat-card orange"><span class="stat-label">Items Sold</span><strong>{{ monthlyData.totalItemsSold }}</strong></div>
+        <div class="stat-card purple"><span class="stat-label">Delivered</span><strong>{{ monthlyData.deliveredOrders }}</strong></div>
+        <div class="stat-card yellow"><span class="stat-label">Pending</span><strong>{{ monthlyData.pendingOrders }}</strong></div>
+        <div class="stat-card red"><span class="stat-label">Cancelled</span><strong>{{ monthlyData.cancelledOrders }}</strong></div>
+      </div>
+
+      <div class="section-card">
+        <h3>📈 Daily Revenue — {{ monthlyData.month }} {{ selectedYear }}</h3>
+        <div class="bar-chart">
+          <div class="bar-row" *ngFor="let d of getDailyRevenueArray()">
+            <span class="bar-label">{{ d.day }}</span>
+            <div class="bar-track">
+              <div class="bar-fill" [style.width]="getBarWidth(d.revenue, getMaxRevenue())" [class.has-value]="d.revenue > 0"></div>
+            </div>
+            <span class="bar-value">{{ d.revenue > 0 ? '₹' + (d.revenue | number:'1.0-0') : '-' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-card" *ngIf="monthlyData.topProducts?.length">
+        <h3>🏆 Top Products — {{ monthlyData.month }}</h3>
+        <table class="data-table">
+          <thead><tr><th>#</th><th>Product</th><th>Qty Sold</th><th>Revenue</th></tr></thead>
+          <tbody>
+            <tr *ngFor="let p of monthlyData.topProducts; let i = index">
+              <td>{{ i + 1 }}</td><td>{{ p.name }}</td>
+              <td>{{ p.quantitySold }}</td><td>₹{{ p.revenue | number:'1.2-2' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="section-card" *ngIf="yearlyData">
+        <h3>📊 Monthly Revenue Chart — {{ selectedYear }}</h3>
+        <div class="summary-row">
+          <span>Year Total: <strong>₹{{ yearlyData.totalYearRevenue | number:'1.2-2' }}</strong></span>
+          <span>Total Orders: <strong>{{ yearlyData.totalYearOrders }}</strong></span>
+        </div>
+        <div class="bar-chart">
+          <div class="bar-row" *ngFor="let m of yearlyData.months; let i = index">
+            <span class="bar-label">{{ m }}</span>
+            <div class="bar-track">
+              <div class="bar-fill"
+                [style.width]="getBarWidth(yearlyData.revenue[i], getMaxMonthlyRevenue())"
+                [class.has-value]="yearlyData.revenue[i] > 0"
+                [class.current-month]="i + 1 === selectedMonth"></div>
+            </div>
+            <span class="bar-value">{{ yearlyData.revenue[i] > 0 ? '₹' + (yearlyData.revenue[i] | number:'1.0-0') : '-' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="monthlyData.totalOrders === 0" class="empty">No orders for {{ monthlyData.month }} {{ selectedYear }}</div>
+    </div>
+  </div>
+</div>

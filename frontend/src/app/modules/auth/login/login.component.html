@@ -1,0 +1,116 @@
+<div class="auth-container">
+  <div class="auth-card">
+
+    <!-- Header -->
+    <div class="auth-header">
+      <span class="auth-logo">💧</span>
+      <h2>Ugam Waters</h2>
+      <p>Sign in to your account</p>
+    </div>
+
+    <!-- Mode toggle -->
+    <div class="auth-mode-toggle">
+      <button type="button"
+              [class.active]="loginMode === 'password'"
+              (click)="switchMode('password')">
+        🔒 Password
+      </button>
+      <button type="button"
+              [class.active]="loginMode === 'otp'"
+              (click)="switchMode('otp')">
+        📱 Login with OTP
+      </button>
+    </div>
+
+    <div class="alert alert-danger" *ngIf="error">{{ error }}</div>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+
+      <!-- ── Email / Mobile ─────────────────────────────────────────── -->
+      <div class="form-group">
+        <label for="login-id">Email / Mobile Number</label>
+
+        <!-- Password mode: simple input -->
+        <input *ngIf="loginMode === 'password'"
+               id="login-id" type="text" formControlName="loginId"
+               placeholder="you@example.com or 9876543210"
+               autocomplete="username"/>
+
+        <!-- OTP mode: input + Send OTP button -->
+        <div *ngIf="loginMode === 'otp'" class="input-with-action">
+          <input id="login-id-otp" type="text" formControlName="loginId"
+                 placeholder="you@example.com or 9876543210"
+                 autocomplete="username"
+                 [readonly]="otpSent"/>
+          <button type="button" class="btn-otp-send"
+                  (click)="sendOtp()"
+                  [disabled]="!canSendOtp()">
+            <span *ngIf="!otpLoading">
+              {{ otpSent && otpCountdown > 0
+                  ? 'Resend in ' + otpCountdown + 's'
+                  : (otpSent ? 'Resend OTP' : 'Send OTP') }}
+            </span>
+            <span *ngIf="otpLoading">⏳</span>
+          </button>
+        </div>
+
+        <span class="error" *ngIf="loginIdCtrl.touched && loginIdCtrl.errors?.['required']">Required.</span>
+        <span class="error" *ngIf="loginIdCtrl.touched && loginIdCtrl.errors?.['invalidLoginId']">
+          Enter a valid email or 10-digit mobile number.
+        </span>
+        <span class="alert-success" *ngIf="otpSuccess && loginMode === 'otp'">{{ otpSuccess }}</span>
+        <span class="error"         *ngIf="otpError   && loginMode === 'otp'">{{ otpError }}</span>
+
+        <!-- Dev OTP hint -->
+        <div class="dev-otp-box" *ngIf="devOtp && loginMode === 'otp'">
+          🛠 <strong>Dev OTP:</strong> <span class="dev-otp-code">{{ devOtp }}</span>
+          <span class="dev-otp-note">(Remove in production)</span>
+        </div>
+      </div>
+
+      <!-- ── OTP Input (OTP mode) ───────────────────────────────────── -->
+      <div class="form-group otp-group" *ngIf="loginMode === 'otp' && otpSent">
+        <label for="login-otp">Enter OTP</label>
+        <input id="login-otp" type="text" formControlName="otp"
+               placeholder="6-digit code" maxlength="6" inputmode="numeric"
+               class="otp-input"/>
+      </div>
+
+      <!-- ── Password (password mode) ──────────────────────────────── -->
+      <div class="form-group" *ngIf="loginMode === 'password'">
+        <label for="login-password">Password</label>
+        <div class="password-wrapper">
+          <input id="login-password"
+                 [type]="showPassword ? 'text' : 'password'"
+                 formControlName="password"
+                 placeholder="••••••••"
+                 autocomplete="current-password"/>
+          <button type="button" class="btn-eye"
+                  (click)="showPassword = !showPassword"
+                  [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'">
+            {{ showPassword ? '🙈' : '👁️' }}
+          </button>
+        </div>
+        <span class="error" *ngIf="passwordCtrl.touched && passwordCtrl.errors?.['required']">
+          Password is required.
+        </span>
+        <span class="error" *ngIf="passwordCtrl.touched && passwordCtrl.errors?.['minlength']">
+          Minimum 6 characters.
+        </span>
+      </div>
+
+      <!-- ── Submit ─────────────────────────────────────────────────── -->
+      <button type="submit" class="btn-primary"
+              [disabled]="loading || (loginMode === 'otp' && !otpSent)">
+        <span *ngIf="!loading">
+          {{ loginMode === 'otp' ? '📱 Verify & Sign In' : '🔐 Sign In' }}
+        </span>
+        <span *ngIf="loading">Signing in…</span>
+      </button>
+    </form>
+
+    <p class="auth-footer">
+      Don't have an account? <a routerLink="/auth/register">Register</a>
+    </p>
+  </div>
+</div>

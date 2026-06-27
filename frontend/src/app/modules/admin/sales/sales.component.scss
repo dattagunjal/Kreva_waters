@@ -1,0 +1,192 @@
+.sales-container {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  background: white;
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+
+  label { font-weight: 600; color: #475569; font-size: 0.9rem; }
+
+  input, select {
+    padding: 0.5rem 0.9rem;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    outline: none;
+    &:focus { border-color: #1a6bbf; }
+  }
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.stat-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  border-left: 4px solid transparent;
+
+  .stat-label { font-size: 0.8rem; color: #64748b; display: block; margin-bottom: 0.4rem; }
+  strong { font-size: 1.9rem; font-weight: 700; }
+
+  &.blue   { border-color: #3b82f6; strong { color: #1d4ed8; } }
+  &.green  { border-color: #22c55e; strong { color: #15803d; } }
+  &.orange { border-color: #f97316; strong { color: #c2410c; } }
+  &.purple { border-color: #a855f7; strong { color: #7e22ce; } }
+  &.yellow { border-color: #eab308; strong { color: #854d0e; } }
+  &.red    { border-color: #ef4444; strong { color: #991b1b; } }
+}
+
+.section-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+
+  h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 1.25rem; color: #1e293b; }
+}
+
+.summary-row {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  color: #64748b;
+  strong { color: #1a6bbf; }
+}
+
+/* Bar Chart */
+.bar-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.bar-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.bar-label {
+  font-size: 0.8rem;
+  color: #64748b;
+  font-weight: 600;
+  min-width: 28px;
+  text-align: right;
+}
+
+.bar-track {
+  flex: 1;
+  background: #f1f5f9;
+  border-radius: 4px;
+  height: 22px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  background: #bfdbfe;
+  border-radius: 4px;
+  transition: width 0.4s ease;
+  min-width: 0;
+
+  &.has-value { background: #3b82f6; }
+  &.current-month { background: #1a6bbf; }
+}
+
+.bar-value {
+  font-size: 0.78rem;
+  color: #475569;
+  font-weight: 600;
+  min-width: 72px;
+}
+
+/* Table */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th {
+    background: #f8fafc;
+    padding: 0.7rem 1rem;
+    text-align: left;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #64748b;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 0.875rem;
+  }
+
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #f8fafc; }
+}
+
+.status {
+  padding: 0.2rem 0.65rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  &.pending   { background: #fef9c3; color: #854d0e; }
+  &.confirmed { background: #dbeafe; color: #1e40af; }
+  &.delivered { background: #dcfce7; color: #15803d; }
+  &.cancelled { background: #fee2e2; color: #991b1b; }
+}
+
+.empty {
+  text-align: center;
+  padding: 3rem;
+  color: #94a3b8;
+  font-size: 1rem;
+}
+
+.loading {
+  text-align: center;
+  padding: 2rem;
+  color: #94a3b8;
+}
+
+@media (max-width: 768px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .filter-bar { flex-wrap: wrap; }
+}
+
+@media (max-width: 480px) {
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+}
+
+.btn-export {
+  margin-left: auto;
+  background: #1a6bbf;
+  color: white;
+  border: none;
+  padding: 0.5rem 1.2rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  white-space: nowrap;
+
+  &:hover:not(:disabled) { background: #1457a0; }
+  &:disabled { background: #94a3b8; cursor: not-allowed; }
+}
