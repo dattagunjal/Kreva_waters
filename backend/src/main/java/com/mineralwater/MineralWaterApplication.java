@@ -14,7 +14,11 @@ public class MineralWaterApplication {
 
     @Bean
     public RestTemplate restTemplate() {
-        return new RestTemplate();
+        org.springframework.http.client.SimpleClientHttpRequestFactory factory = 
+                new org.springframework.http.client.SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(5000); // 5 seconds connection timeout
+        factory.setReadTimeout(5000);    // 5 seconds read timeout
+        return new RestTemplate(factory);
     }
 
     @Bean

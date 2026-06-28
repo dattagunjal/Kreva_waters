@@ -50,7 +50,8 @@
 
             <div class="form-group">
               <label for="prof-mobile">Mobile Number</label>
-              <input id="prof-mobile" type="text" formControlName="mobileNumber" class="form-control" placeholder="Optional" />
+              <input id="prof-mobile" type="text" formControlName="mobileNumber" class="form-control" placeholder="Optional"
+                     maxlength="10" (keypress)="onlyNumbers($event)" inputmode="numeric" />
               <span class="error" *ngIf="profileForm.get('mobileNumber')?.touched && profileForm.get('mobileNumber')?.errors?.['pattern']">
                 Please enter a valid 10-digit mobile number.
               </span>

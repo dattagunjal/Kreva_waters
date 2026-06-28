@@ -34,14 +34,18 @@
         <input *ngIf="loginMode === 'password'"
                id="login-id" type="text" formControlName="loginId"
                placeholder="you@example.com or 9876543210"
-               autocomplete="username"/>
+               autocomplete="username"
+               (keypress)="onLoginIdKeypress($event)"
+               (input)="onLoginIdInput($event)"/>
 
         <!-- OTP mode: input + Send OTP button -->
         <div *ngIf="loginMode === 'otp'" class="input-with-action">
           <input id="login-id-otp" type="text" formControlName="loginId"
                  placeholder="you@example.com or 9876543210"
                  autocomplete="username"
-                 [readonly]="otpSent"/>
+                 [readonly]="otpSent"
+                 (keypress)="onLoginIdKeypress($event)"
+                 (input)="onLoginIdInput($event)"/>
           <button type="button" class="btn-otp-send"
                   (click)="sendOtp()"
                   [disabled]="!canSendOtp()">

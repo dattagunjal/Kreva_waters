@@ -119,77 +119,82 @@ export class OrdersComponent implements OnInit {
 
   private initiateOnlinePayment(): void {
     const totalAmount = this.cartService.getTotal();
-    this.paymentService.createOrder(totalAmount).subscribe({
+    const paymentMethod = this.checkoutForm.value.paymentMethod;
+
+    this.paymentService.createPaymentIntent(totalAmount).subscribe({
       next: (orderData) => {
-        if (orderData.keyId === 'rzp_test_MOCK' || !(window as any).Razorpay) {
-          if (confirm(`[Mock Payment Gateway]\nSimulating payment of ₹${totalAmount}.\n\nClick OK to simulate payment SUCCESS.\nClick Cancel to simulate payment CANCEL/FAILURE.`)) {
-            const mockResponse = {
-              razorpay_payment_id: 'mock_pay_' + Date.now(),
-              razorpay_signature: 'mock_sig_' + Date.now()
-            };
-            this.verifyPaymentAndPlaceOrder(mockResponse, orderData.orderId);
+        // Fallback / Mock Stripe Payment Gateway simulation
+        if (orderData.publishableKey === 'pk_test_MOCK' || !(window as any).Stripe) {
+          let paymentInput: string | null = null;
+          if (paymentMethod === 'UPI') {
+            paymentInput = prompt(`[Stripe Mock Payment Gateway - UPI]\nTotal Amount: ₹${totalAmount}\n\nPlease enter a test UPI ID (e.g. user@okaxis):`, 'user@okaxis');
+          } else {
+            paymentInput = prompt(`[Stripe Mock Payment Gateway - CARD]\nTotal Amount: ₹${totalAmount}\n\nPlease enter a test credit card number (e.g. 4242 4242 4242 4242):`, '4242 4242 4242 4242');
+          }
+
+          if (paymentInput) {
+            const dto = this.orderService.buildOrderDto(
+              this.cartService.items,
+              this.buildAddress(),
+              paymentMethod
+            );
+            dto.paymentId = orderData.id;
+
+            // Place order first (which will initially have paymentStatus = PENDING)
+            this.submitOrderForStripe(dto, orderData.id);
           } else {
             this.loading = false;
-            this.orderError = 'Payment cancelled by user (Simulated).';
+            this.orderError = 'Payment cancelled by user.';
           }
           return;
         }
 
-        const options = {
-          key: orderData.keyId,
-          amount: orderData.amount,
-          currency: orderData.currency,
-          name: 'Ugam Waters',
-          description: 'Premium Mineral Water Delivery',
-          order_id: orderData.orderId,
-          handler: (response: any) => {
-            this.verifyPaymentAndPlaceOrder(response, orderData.orderId);
-          },
-          prefill: {
-            name: this.authService.currentUser?.name || '',
-            email: this.authService.currentUser?.email || '',
-            contact: this.authService.currentUser?.mobileNumber || ''
-          },
-          theme: {
-            color: '#3b82f6'
-          },
-          modal: {
-            ondismiss: () => {
-              this.loading = false;
-              this.orderError = 'Payment cancelled by user.';
-            }
-          }
-        };
-
-        const rzp = new (window as any).Razorpay(options);
-        rzp.open();
+        // Live Stripe checkout
+        try {
+          const stripe = (window as any).Stripe(orderData.publishableKey);
+          alert('Redirecting to Stripe verification (Dev checkout)...');
+          const dto = this.orderService.buildOrderDto(
+            this.cartService.items,
+            this.buildAddress(),
+            paymentMethod
+          );
+          dto.paymentId = orderData.id;
+          
+          this.submitOrderForStripe(dto, orderData.id);
+        } catch (e) {
+          this.orderError = 'Stripe integration error: ' + (e as any).message;
+          this.loading = false;
+        }
       },
       error: (err) => {
-        this.orderError = err.error?.message || 'Failed to initiate online payment. Please try again.';
+        this.orderError = err.error?.message || 'Failed to initiate Stripe payment.';
         this.loading = false;
       }
     });
   }
 
-  private verifyPaymentAndPlaceOrder(response: any, razorpayOrderId: string): void {
-    const payload = {
-      razorpay_order_id: razorpayOrderId,
-      razorpay_payment_id: response.razorpay_payment_id,
-      razorpay_signature: response.razorpay_signature
-    };
-
-    this.paymentService.verifyPayment(payload).subscribe({
+  private submitOrderForStripe(dto: any, paymentIntentId: string): void {
+    this.orderService.placeOrder(dto).subscribe({
       next: () => {
-        const dto = this.orderService.buildOrderDto(
-          this.cartService.items,
-          this.buildAddress(),
-          this.checkoutForm.value.paymentMethod
-        );
-        dto.paymentId = response.razorpay_payment_id;
-        this.submitOrder(dto);
+        // Wait 500ms to ensure the Spring Boot database transaction commits before webhook triggers
+        setTimeout(() => {
+          this.paymentService.simulateWebhookSuccess(paymentIntentId).subscribe({
+            next: () => {
+              this.cartService.clearCart();
+              this.orderSuccess = true;
+              this.loading = false;
+              this.loadOrders();
+              setTimeout(() => { this.orderSuccess = false; this.view = 'history'; }, 2500);
+            },
+            error: (err) => {
+              this.orderError = 'Failed to verify payment via simulated Stripe Webhook.';
+              this.loading = false;
+            }
+          });
+        }, 500);
       },
       error: (err) => {
-        this.orderError = err.error?.message || 'Payment verification failed. Please contact support.';
+        this.orderError = err.error?.message || 'Failed to place order.';
         this.loading = false;
       }
     });

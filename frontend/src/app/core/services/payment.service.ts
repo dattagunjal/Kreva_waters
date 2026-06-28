@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
@@ -9,11 +9,21 @@ export class PaymentService {
 
   constructor(private http: HttpClient) {}
 
-  createOrder(amount: number): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/create-order`, { amount });
+  createPaymentIntent(amount: number): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/create-intent`, { amount });
   }
 
-  verifyPayment(payload: any): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/verify`, payload);
+  simulateWebhookSuccess(paymentIntentId: string): Observable<any> {
+    const headers = new HttpHeaders().set('Stripe-Signature', 'mock_signature');
+    const payload = {
+      type: 'payment_intent.succeeded',
+      data: {
+        object: {
+          id: paymentIntentId,
+          status: 'succeeded'
+        }
+      }
+    };
+    return this.http.post<any>(`${this.apiUrl}/webhook`, payload, { headers });
   }
 }

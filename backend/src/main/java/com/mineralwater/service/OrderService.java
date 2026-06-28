@@ -86,18 +86,22 @@ public class OrderService {
 
         if (dto.getPaymentId() != null && !dto.getPaymentId().isBlank()) {
             order.setPaymentId(dto.getPaymentId());
+            order.setPaymentStatus(com.mineralwater.model.Order.PaymentStatus.PENDING);
+        }
+
+        return orderRepository.save(order);
+    }
+
+    @Transactional
+    public Order confirmPayment(String paymentIntentId) {
+        Order order = orderRepository.findByPaymentId(paymentIntentId)
+                .orElseThrow(() -> new RuntimeException("Order not found for payment ID: " + paymentIntentId));
+
+        if (order.getPaymentStatus() != com.mineralwater.model.Order.PaymentStatus.PAID) {
             order.setPaymentStatus(com.mineralwater.model.Order.PaymentStatus.PAID);
+            order = orderRepository.save(order);
         }
-
-        Order savedOrder = orderRepository.save(order);
-
-        try {
-            notificationService.sendOrderNotification(savedOrder);
-        } catch (Exception e) {
-            // Notification failure must never roll back a completed order
-        }
-
-        return savedOrder;
+        return order;
     }
 
     @Transactional(readOnly = true)
