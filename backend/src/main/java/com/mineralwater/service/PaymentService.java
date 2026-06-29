@@ -1,15 +1,12 @@
 package com.mineralwater.service;
 
-import com.razorpay.Order;
-import com.razorpay.RazorpayClient;
-import com.razorpay.RazorpayException;
+import com.stripe.Stripe;
+import com.stripe.model.PaymentIntent;
+import com.stripe.param.PaymentIntentCreateParams;
 import lombok.extern.slf4j.Slf4j;
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -17,75 +14,52 @@ import java.util.Map;
 @Slf4j
 public class PaymentService {
 
-    @Value("${razorpay.key.id}")
-    private String keyId;
+    @Value("${stripe.publishable.key}")
+    private String publishableKey;
 
-    @Value("${razorpay.key.secret}")
-    private String keySecret;
+    @Value("${stripe.secret.key}")
+    private String secretKey;
 
-    public Map<String, Object> createRazorpayOrder(Double amount) {
-        if (keyId == null || keyId.contains("PLACEHOLDER") || keyId.isBlank() || "rzp_test_MOCK".equals(keyId)) {
-            log.warn("Razorpay keys are not configured or placeholder. Falling back to mock order.");
+    public Map<String, Object> createPaymentIntent(Double amount) {
+        if (secretKey == null || secretKey.contains("PLACEHOLDER") || secretKey.isBlank() || "sk_test_MOCK".equals(secretKey)) {
+            log.warn("Stripe secret key is not configured or placeholder. Falling back to mock PaymentIntent.");
             Map<String, Object> result = new LinkedHashMap<>();
-            result.put("orderId", "mock_order_" + System.currentTimeMillis());
-            result.put("amount", (int) (amount * 100));
-            result.put("currency", "INR");
-            result.put("keyId", "rzp_test_MOCK");
+            result.put("id", "mock_pi_" + System.currentTimeMillis());
+            result.put("clientSecret", "mock_client_secret_" + System.currentTimeMillis());
+            result.put("publishableKey", "pk_test_MOCK");
             return result;
         }
+
         try {
-            RazorpayClient client = new RazorpayClient(keyId, keySecret);
+            Stripe.apiKey = secretKey;
 
-            JSONObject orderRequest = new JSONObject();
-            orderRequest.put("amount", (int) (amount * 100)); // Amount in paise
-            orderRequest.put("currency", "INR");
-            orderRequest.put("receipt", "order_" + System.currentTimeMillis());
+            PaymentIntentCreateParams params = PaymentIntentCreateParams.builder()
+                    .setAmount((long) (amount * 100)) // Amount in cents / paise
+                    .setCurrency("inr")
+                    .setAutomaticPaymentMethods(
+                            PaymentIntentCreateParams.AutomaticPaymentMethods.builder()
+                                    .setEnabled(true)
+                                    .build()
+                    )
+                    .build();
 
-            Order razorpayOrder = client.orders.create(orderRequest);
+            PaymentIntent intent = PaymentIntent.create(params);
 
             Map<String, Object> result = new LinkedHashMap<>();
-            result.put("orderId", razorpayOrder.get("id"));
-            result.put("amount", razorpayOrder.get("amount"));
-            result.put("currency", razorpayOrder.get("currency"));
-            result.put("keyId", keyId);
+            result.put("id", intent.getId());
+            result.put("clientSecret", intent.getClientSecret());
+            result.put("publishableKey", publishableKey);
             return result;
 
-        } catch (RazorpayException e) {
-            log.warn("Razorpay order creation failed: {}. Falling back to mock order in DEV.", e.getMessage());
-            Map<String, Object> result = new LinkedHashMap<>();
-            result.put("orderId", "mock_order_" + System.currentTimeMillis());
-            result.put("amount", (int) (amount * 100));
-            result.put("currency", "INR");
-            result.put("keyId", "rzp_test_MOCK");
-            return result;
-        }
-    }
-
-    public boolean verifyPayment(String orderId, String paymentId, String signature) {
-        if (orderId != null && orderId.startsWith("mock_order_") &&
-            paymentId != null && paymentId.startsWith("mock_pay_") &&
-            signature != null && signature.startsWith("mock_sig_")) {
-            log.info("Mock payment verified successfully.");
-            return true;
-        }
-        try {
-            String data = orderId + "|" + paymentId;
-            Mac mac = Mac.getInstance("HmacSHA256");
-            SecretKeySpec secretKey = new SecretKeySpec(keySecret.getBytes(), "HmacSHA256");
-            mac.init(secretKey);
-            byte[] hash = mac.doFinal(data.getBytes());
-
-            StringBuilder hexString = new StringBuilder();
-            for (byte b : hash) {
-                String hex = Integer.toHexString(0xff & b);
-                if (hex.length() == 1) hexString.append('0');
-                hexString.append(hex);
-            }
-
-            return hexString.toString().equals(signature);
         } catch (Exception e) {
-            log.error("Payment verification failed: {}", e.getMessage());
-            return false;
+            log.error("Stripe PaymentIntent creation failed: {}", e.getMessage());
+            // Fallback in dev/test to keep flow functioning
+            log.warn("Falling back to mock PaymentIntent due to error.");
+            Map<String, Object> result = new LinkedHashMap<>();
+            result.put("id", "mock_pi_" + System.currentTimeMillis());
+            result.put("clientSecret", "mock_client_secret_" + System.currentTimeMillis());
+            result.put("publishableKey", "pk_test_MOCK");
+            return result;
         }
     }
 }

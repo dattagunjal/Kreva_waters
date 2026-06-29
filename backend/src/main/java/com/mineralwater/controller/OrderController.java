@@ -3,7 +3,9 @@ package com.mineralwater.controller;
 import com.mineralwater.dto.OrderDto;
 import com.mineralwater.model.Order;
 import com.mineralwater.service.OrderService;
+import com.mineralwater.service.NotificationService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -14,15 +16,27 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/orders")
 @RequiredArgsConstructor
+@Slf4j
 public class OrderController {
 
     private final OrderService orderService;
+    private final NotificationService notificationService;
 
     @PostMapping
     public ResponseEntity<Order> placeOrder(
             @RequestBody OrderDto dto,
             @AuthenticationPrincipal UserDetails userDetails) {
-        return ResponseEntity.ok(orderService.placeOrder(userDetails.getUsername(), dto));
+        Order order = orderService.placeOrder(userDetails.getUsername(), dto);
+
+        if ("COD".equalsIgnoreCase(dto.getPaymentMethod())) {
+            try {
+                notificationService.sendOrderNotification(order);
+            } catch (Exception e) {
+                log.error("Failed to send order notification for COD order: {}", e.getMessage());
+            }
+        }
+
+        return ResponseEntity.ok(order);
     }
 
     @GetMapping("/my")

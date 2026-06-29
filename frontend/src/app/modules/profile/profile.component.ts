@@ -188,4 +188,9 @@ export class ProfileComponent implements OnInit {
       }
     });
   }
+
+  onlyNumbers(event: KeyboardEvent): boolean {
+    const charCode = event.key;
+    return /^[0-9]$/.test(charCode);
+  }
 }

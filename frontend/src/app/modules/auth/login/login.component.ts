@@ -143,4 +143,24 @@ export class LoginComponent {
       }
     });
   }
+
+  onLoginIdKeypress(event: KeyboardEvent): boolean {
+    const input = event.target as HTMLInputElement;
+    const val = input.value || '';
+    if (/^\d+$/.test(val) && val.length >= 10) {
+      if (/^[0-9]$/.test(event.key)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  onLoginIdInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    let val = input.value || '';
+    if (/^\d+$/.test(val) && val.length > 10) {
+      input.value = val.substring(0, 10);
+      this.loginForm.get('loginId')?.setValue(input.value);
+    }
+  }
 }

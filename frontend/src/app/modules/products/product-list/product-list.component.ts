@@ -31,7 +31,7 @@ export class ProductListComponent implements OnInit {
     this.customizerForm = this.fb.group({
       businessName: ['', [Validators.required]],
       tagline: [''],
-      contactNumber: [''],
+      contactNumber: ['', [Validators.pattern('^[0-9]{10}$')]],
       website: [''],
       notes: ['']
     });
@@ -95,5 +95,10 @@ export class ProductListComponent implements OnInit {
 
     this.addedToCart[prodId] = true;
     setTimeout(() => this.addedToCart[prodId] = false, 1500);
+  }
+
+  onlyNumbers(event: KeyboardEvent): boolean {
+    const charCode = event.key;
+    return /^[0-9]$/.test(charCode);
   }
 }

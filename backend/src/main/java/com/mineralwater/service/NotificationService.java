@@ -16,106 +16,92 @@ import java.util.Map;
 @Slf4j
 public class NotificationService {
 
-    @Value("${fast2sms.api.key}")
-    private String apiKey;
+    @Value("${whatsapp.access.token}")
+    private String accessToken;
 
-    @Value("${admin.mobile}")
-    private String adminMobile;
+    @Value("${whatsapp.phone.number.id}")
+    private String phoneId;
 
-    private static final String FAST2SMS_URL = "https://www.fast2sms.com/dev/bulkV2";
-    private static final String FAST2SMS_WHATSAPP_URL = "https://www.fast2sms.com/dev/whatsapp";
+    @Value("${whatsapp.template.name}")
+    private String templateName;
+
+    @Value("${admin.mobiles}")
+    private String adminMobiles;
 
     private final RestTemplate restTemplate;
 
     /**
-     * Called when a new order is placed — sends both SMS + WhatsApp
+     * Called to notify multiple admins of a new completed/paid order
      */
     public void sendOrderNotification(Order order) {
-        String message = buildMessage(order);
-        sendSMS(message);
-        sendWhatsApp(message);
-    }
+        if (adminMobiles == null || adminMobiles.isBlank()) {
+            log.warn("No admin mobile numbers configured for notifications.");
+            return;
+        }
 
-    /**
-     * Build notification message
-     */
-    private String buildMessage(Order order) {
-        return String.format(
-            "🚿 New Order Alert! - UgamWaters\n" +
-            "Order ID  : #%d\n" +
-            "Customer  : %s\n" +
-            "Amount    : Rs.%.2f\n" +
-            "Items     : %d item(s)\n" +
-            "Address   : %s\n" +
-            "Status    : %s\n" +
-            "Login to admin panel to manage this order.",
-            order.getId(),
-            order.getUser().getName(),
-            order.getTotalAmount(),
-            order.getItems().size(),
-            order.getAddress(),
-            order.getStatus()
-        );
-    }
-
-    /**
-     * Send SMS via Fast2SMS
-     */
-    private void sendSMS(String message) {
-        try {
-            HttpHeaders headers = new HttpHeaders();
-            headers.set("authorization", apiKey);
-            headers.setContentType(MediaType.APPLICATION_JSON);
-
-            Map<String, Object> body = new HashMap<>();
-            body.put("route", "q");           // Quick transactional route
-            body.put("message", message);
-            body.put("language", "english");
-            body.put("flash", 0);
-            body.put("numbers", adminMobile);
-
-            HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
-            ResponseEntity<String> response = restTemplate.postForEntity(
-                FAST2SMS_URL, request, String.class
-            );
-
-            if (response.getStatusCode() == HttpStatus.OK) {
-                log.info("✅ SMS sent to admin: {}", adminMobile);
-            } else {
-                log.error("❌ SMS failed: {}", response.getBody());
+        String[] numbers = adminMobiles.split(",");
+        for (String number : numbers) {
+            String trimmedNumber = number.trim();
+            if (!trimmedNumber.isEmpty()) {
+                sendWhatsAppNotification(trimmedNumber, order);
             }
-
-        } catch (Exception e) {
-            log.error("❌ SMS error: {}", e.getMessage());
         }
     }
 
     /**
-     * Send WhatsApp via Fast2SMS
+     * Send WhatsApp Template Notification via Meta Cloud API
      */
-    private void sendWhatsApp(String message) {
+    private void sendWhatsAppNotification(String mobileNumber, Order order) {
+        if (accessToken == null || accessToken.contains("PLACEHOLDER") || accessToken.isBlank()) {
+            log.warn("[Mock WhatsApp] WhatsApp is not configured. Simulating template message to: {} for Order #{}", mobileNumber, order.getId());
+            return;
+        }
+
         try {
+            String url = "https://graph.facebook.com/v17.0/" + phoneId + "/messages";
+
             HttpHeaders headers = new HttpHeaders();
-            headers.set("authorization", apiKey);
+            headers.setBearerAuth(accessToken);
             headers.setContentType(MediaType.APPLICATION_JSON);
 
             Map<String, Object> body = new HashMap<>();
-            body.put("mobile", adminMobile);
-            body.put("message", message);
+            body.put("messaging_product", "whatsapp");
+            body.put("to", mobileNumber);
+            body.put("type", "template");
+
+            Map<String, Object> template = new HashMap<>();
+            template.put("name", templateName);
+
+            Map<String, String> language = new HashMap<>();
+            language.put("code", "en_US");
+            template.put("language", language);
+
+            java.util.List<Map<String, Object>> parameters = new java.util.ArrayList<>();
+            parameters.add(Map.of("type", "text", "text", "#" + order.getId()));
+            parameters.add(Map.of("type", "text", "text", order.getUser().getName()));
+            parameters.add(Map.of("type", "text", "text", String.format("Rs.%.2f", order.getTotalAmount())));
+            parameters.add(Map.of("type", "text", "text", String.valueOf(order.getItems().size())));
+            parameters.add(Map.of("type", "text", "text", order.getAddress()));
+            parameters.add(Map.of("type", "text", "text", order.getStatus().toString()));
+
+            template.put("components", java.util.List.of(Map.of(
+                "type", "body",
+                "parameters", parameters
+            )));
+
+            body.put("template", template);
 
             HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
-            ResponseEntity<String> response = restTemplate.postForEntity(
-                FAST2SMS_WHATSAPP_URL, request, String.class
-            );
+            ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
 
-            if (response.getStatusCode() == HttpStatus.OK) {
-                log.info("✅ WhatsApp sent to admin: {}", adminMobile);
+            if (response.getStatusCode().is2xxSuccessful()) {
+                log.info("✅ WhatsApp notification sent to: {}", mobileNumber);
             } else {
-                log.error("❌ WhatsApp failed: {}", response.getBody());
+                log.error("❌ WhatsApp notification failed for: {}. Response: {}", mobileNumber, response.getBody());
             }
 
         } catch (Exception e) {
-            log.error("❌ WhatsApp error: {}", e.getMessage());
+            log.error("❌ WhatsApp error for: {}: {}", mobileNumber, e.getMessage());
         }
     }
 }

@@ -35,7 +35,8 @@
       <div class="form-group">
         <label for="reg-mobile">Mobile Number</label>
         <input id="reg-mobile" type="text" formControlName="mobileNumber"
-               placeholder="9876543210" autocomplete="tel" [readonly]="otpSent"/>
+               placeholder="9876543210" autocomplete="tel" [readonly]="otpSent"
+               maxlength="10" (keypress)="onlyNumbers($event)" inputmode="numeric"/>
         <span class="error" *ngIf="registerForm.touched && registerForm.errors?.['invalidMobile']">
           Enter a valid 10-digit mobile number starting with 6-9.
         </span>
