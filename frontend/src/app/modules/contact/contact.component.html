@@ -6,6 +6,10 @@
     {{ successMsg }}
   </div>
 
+  <div *ngIf="errorMsg" class="error-banner" style="margin-bottom:1.5rem; background:#fee2e2; color:#b91c1c; border:1px solid #fca5a5; padding:0.75rem 1rem; border-radius:8px; font-weight:500;">
+    {{ errorMsg }}
+  </div>
+
   <div style="display:grid; grid-template-columns: 1fr 1.3fr; gap:2.5rem; align-items:start;">
     
     <!-- Left: Info Cards -->

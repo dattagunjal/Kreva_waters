@@ -20,12 +20,14 @@ com\mineralwater\controller\UserController.class
 com\mineralwater\security\JwtUtil.class
 com\mineralwater\service\NotificationService.class
 com\mineralwater\controller\PaymentController.class
+com\mineralwater\model\Enquiry.class
 com\mineralwater\service\OrderService.class
 com\mineralwater\controller\AuthController.class
 com\mineralwater\model\Order$PaymentStatus.class
 com\mineralwater\repository\UserRepository.class
 com\mineralwater\dto\AuthDto$LoginRequest.class
 com\mineralwater\controller\OrderController.class
+com\mineralwater\repository\EnquiryRepository.class
 com\mineralwater\model\Product.class
 com\mineralwater\model\Product$ProductBuilder.class
 com\mineralwater\model\User$UserBuilder.class
@@ -46,9 +48,11 @@ com\mineralwater\service\AuthService.class
 com\mineralwater\model\Order$Status.class
 com\mineralwater\model\User$Role.class
 com\mineralwater\service\ProductService.class
+com\mineralwater\controller\ContactController.class
 com\mineralwater\model\OtpEntry$Purpose.class
 com\mineralwater\model\OtpEntry.class
 com\mineralwater\model\Order$OrderBuilder.class
 com\mineralwater\security\SecurityConfig.class
 com\mineralwater\exception\GlobalExceptionHandler.class
+com\mineralwater\model\Enquiry$EnquiryBuilder.class
 com\mineralwater\dto\AuthDto.class
