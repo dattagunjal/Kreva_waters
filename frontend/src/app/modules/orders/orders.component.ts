@@ -190,24 +190,6 @@ export class OrdersComponent implements OnInit {
                 theme: {
                   color: '#1a6bbf'
                 },
-                config: {
-                  display: {
-                    blocks: {
-                      banks: {
-                        name: 'Pay via UPI / QR Code',
-                        instruments: [
-                          {
-                            method: 'upi'
-                          }
-                        ]
-                      }
-                    },
-                    sequence: ['block.banks'],
-                    preferences: {
-                      show_default_blocks: false
-                    }
-                  }
-                },
                 handler: (response: any) => {
                   this.loading = true;
                   this.orderError = '';
