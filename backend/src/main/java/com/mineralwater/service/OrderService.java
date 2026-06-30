@@ -72,8 +72,12 @@ public class OrderService {
                     throw new RuntimeException("The entered pincode (" + pincode + ") is invalid or does not exist in India.");
                 }
             }
-        } catch (org.springframework.web.client.RestClientException e) {
-            log.warn("Failed to contact India Post API (RestClientException): {}. Falling back to format validation.", e.getMessage());
+        } catch (RuntimeException re) {
+            if (re instanceof org.springframework.web.client.RestClientException) {
+                log.warn("Failed to contact India Post API (RestClientException): {}. Falling back to format validation.", re.getMessage());
+            } else {
+                throw re;
+            }
         } catch (Exception e) {
             log.warn("Failed to contact India Post API (General Exception): {}. Falling back to format validation.", e.getMessage());
         }

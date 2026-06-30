@@ -38,6 +38,7 @@ export class OrdersComponent implements OnInit {
   upiTransactionId = '';
   upiError = '';
   bankDetails: any = null;
+  upiTimer: any = null;
 
   constructor(
     private fb: FormBuilder,
@@ -132,6 +133,13 @@ export class OrdersComponent implements OnInit {
           this.upiTransactionId = '';
           this.upiError = '';
           this.showUpiModal = true;
+
+          if (this.upiTimer) clearTimeout(this.upiTimer);
+          this.upiTimer = setTimeout(() => {
+            if (this.showUpiModal && !this.upiError) {
+              this.submitUpiPayment();
+            }
+          }, 6000);
         },
         error: (err) => {
           this.loading = false;
@@ -143,18 +151,20 @@ export class OrdersComponent implements OnInit {
     }
   }
 
-  onUpiTxInput(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    this.upiTransactionId = input.value.replace(/\D/g, '');
-    this.upiError = '';
-  }
-
   cancelUpiModal(): void {
+    if (this.upiTimer) {
+      clearTimeout(this.upiTimer);
+      this.upiTimer = null;
+    }
     this.showUpiModal = false;
     this.loading = false;
   }
 
   submitUpiPayment(): void {
+    if (this.upiTimer) {
+      clearTimeout(this.upiTimer);
+      this.upiTimer = null;
+    }
     const mockTxnId = 'UPI-' + Math.floor(100000000000 + Math.random() * 900000000000);
 
     const dto = this.orderService.buildOrderDto(
