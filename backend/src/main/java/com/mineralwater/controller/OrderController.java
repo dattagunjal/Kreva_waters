@@ -53,8 +53,9 @@ public class OrderController {
         // Security check: must be admin OR the owner of the order
         boolean isAdmin = userDetails.getAuthorities().stream()
                 .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
-        if (!isAdmin && !order.getUser().getMobileNumber().equals(userDetails.getUsername()) 
-                 && !order.getUser().getEmail().equals(userDetails.getUsername())) {
+        boolean isOwner = (order.getUser().getMobileNumber() != null && order.getUser().getMobileNumber().equals(userDetails.getUsername()))
+                || (order.getUser().getEmail() != null && order.getUser().getEmail().equals(userDetails.getUsername()));
+        if (!isAdmin && !isOwner) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
