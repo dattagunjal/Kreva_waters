@@ -60,10 +60,22 @@
         </div>
 
         <div class="form-group">
-          <label style="font-weight:600; font-size:0.875rem; margin-bottom:4px; display:block;">Email or Mobile Number</label>
-          <input type="text" formControlName="emailOrMobile" placeholder="e.g. john.doe&#64;example.com or 9999988888" class="form-control" style="width:100%;" />
+          <label style="font-weight:600; font-size:0.875rem; margin-bottom:4px; display:block;">Mobile Number <span class="required-star">*</span></label>
+          <input 
+            type="text" 
+            formControlName="emailOrMobile" 
+            placeholder="e.g. 9999988888" 
+            class="form-control" 
+            style="width:100%;" 
+            maxlength="10"
+            inputmode="numeric"
+            (input)="onMobileInput($event)"
+          />
           <span class="error" *ngIf="contactForm.get('emailOrMobile')?.touched && contactForm.get('emailOrMobile')?.errors?.['required']">
-            Contact information is required.
+            Mobile number is required.
+          </span>
+          <span class="error" *ngIf="contactForm.get('emailOrMobile')?.touched && contactForm.get('emailOrMobile')?.errors?.['pattern']">
+            Please enter a valid 10-digit mobile number (e.g. 9876543210).
           </span>
         </div>
 

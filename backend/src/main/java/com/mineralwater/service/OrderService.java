@@ -39,6 +39,17 @@ public class OrderService {
         if (dto.getItems() == null || dto.getItems().isEmpty())
             throw new RuntimeException("Order must contain at least one item.");
 
+        // Validate pincode format (ends with 6 digits)
+        String address = dto.getAddress();
+        if (address == null || address.isBlank()) {
+            throw new RuntimeException("Address is required.");
+        }
+        
+        // Match a 6-digit pincode at the end of the address string, e.g., " - 411038"
+        if (!Pattern.compile("-\\s*[1-9][0-9]{5}$").matcher(address.trim()).find()) {
+            throw new RuntimeException("Invalid delivery address: Please enter a valid 6-digit Indian pincode.");
+        }
+
         Order order = Order.builder()
                 .user(user)
                 .address(dto.getAddress())

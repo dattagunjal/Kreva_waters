@@ -96,6 +96,37 @@ export class OrdersComponent implements OnInit {
         'COD'
       );
       this.submitOrder(dto);
+    } else if (paymentMethod === 'UPI') {
+      const totalAmount = this.cartService.getTotal();
+      this.paymentService.getBankDetails().subscribe({
+        next: (bank) => {
+          const message = `Please transfer ₹${totalAmount} to the following admin bank account:\n\n` +
+                          `Bank Name: ${bank.bankName}\n` +
+                          `Account Name: ${bank.accountName}\n` +
+                          `Account Number: ${bank.accountNumber}\n` +
+                          `IFSC Code: ${bank.ifsc}\n` +
+                          `UPI ID: ${bank.upiId}\n\n` +
+                          `After transferring, please enter your transaction reference number or UPI transaction ID to place the order:`;
+          const paymentInput = prompt(message, '');
+          
+          if (paymentInput && paymentInput.trim()) {
+            const dto = this.orderService.buildOrderDto(
+              this.cartService.items,
+              this.buildAddress(),
+              'UPI'
+            );
+            dto.paymentId = paymentInput.trim();
+            this.submitOrder(dto);
+          } else {
+            this.loading = false;
+            this.orderError = 'Order placement cancelled. Payment transaction ID is required for UPI payment.';
+          }
+        },
+        error: (err) => {
+          this.loading = false;
+          this.orderError = 'Failed to fetch payment bank details. Please try again.';
+        }
+      });
     } else {
       this.initiateOnlinePayment();
     }

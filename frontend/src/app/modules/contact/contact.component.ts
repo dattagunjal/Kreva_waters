@@ -19,10 +19,16 @@ export class ContactComponent {
   constructor(private fb: FormBuilder, private http: HttpClient) {
     this.contactForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(2)]],
-      emailOrMobile: ['', [Validators.required]],
+      emailOrMobile: ['', [Validators.required, Validators.pattern('^[6-9][0-9]{9}$')]],
       subject: ['', [Validators.required]],
       message: ['', [Validators.required, Validators.minLength(10)]]
     });
+  }
+
+  onMobileInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const digitsOnly = input.value.replace(/\D/g, '');
+    this.contactForm.get('emailOrMobile')?.setValue(digitsOnly);
   }
 
   submitMessage(): void {

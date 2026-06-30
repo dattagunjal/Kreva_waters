@@ -9,6 +9,10 @@ export class PaymentService {
 
   constructor(private http: HttpClient) {}
 
+  getBankDetails(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/bank-details`);
+  }
+
   createPaymentIntent(amount: number): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/create-intent`, { amount });
   }
