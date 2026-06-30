@@ -13,6 +13,14 @@ export class PaymentService {
     return this.http.get<any>(`${this.apiUrl}/bank-details`);
   }
 
+  getRazorpayKey(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/razorpay-key`);
+  }
+
+  confirmRazorpayPayment(paymentId: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/razorpay/confirm`, { paymentId });
+  }
+
   createPaymentIntent(amount: number): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/create-intent`, { amount });
   }

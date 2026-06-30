@@ -64,7 +64,19 @@ public class OrderService {
             restTemplate.setRequestFactory(factory);
 
             String url = "https://api.postalpincode.in/pincode/" + pincode;
-            java.util.List<?> response = restTemplate.getForObject(url, java.util.List.class);
+            
+            org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+            headers.set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+            org.springframework.http.HttpEntity<String> entity = new org.springframework.http.HttpEntity<>(headers);
+            
+            org.springframework.http.ResponseEntity<java.util.List> responseEntity = restTemplate.exchange(
+                url,
+                org.springframework.http.HttpMethod.GET,
+                entity,
+                java.util.List.class
+            );
+
+            java.util.List<?> response = responseEntity.getBody();
             if (response != null && !response.isEmpty()) {
                 java.util.Map<?, ?> firstResult = (java.util.Map<?, ?>) response.get(0);
                 String status = (String) firstResult.get("Status");

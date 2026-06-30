@@ -54,6 +54,26 @@ public class PaymentController {
         ));
     }
 
+    @Value("${razorpay.key.id:rzp_test_yGzB4Fh5j7z8K9}")
+    private String razorpayKeyId;
+
+    @GetMapping("/razorpay-key")
+    public ResponseEntity<Map<String, String>> getRazorpayKey() {
+        return ResponseEntity.ok(Map.of("keyId", razorpayKeyId));
+    }
+
+    @PostMapping("/razorpay/confirm")
+    public ResponseEntity<?> confirmRazorpay(@RequestBody Map<String, String> request) {
+        String paymentId = request.get("paymentId");
+        com.mineralwater.model.Order order = orderService.confirmPayment(paymentId);
+        try {
+            notificationService.sendOrderNotification(order);
+        } catch (Exception e) {
+            log.error("Failed to send WhatsApp notification: {}", e.getMessage());
+        }
+        return ResponseEntity.ok(order);
+    }
+
     @PostMapping("/create-intent")
     public ResponseEntity<Map<String, Object>> createPaymentIntent(@RequestBody Map<String, Object> request) {
         Double amount = Double.valueOf(request.get("amount").toString());
