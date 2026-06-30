@@ -4,6 +4,7 @@ import com.mineralwater.dto.OrderDto;
 import com.mineralwater.model.*;
 import com.mineralwater.repository.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,6 +14,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class OrderService {
 
     private static final Pattern EMAIL_PATTERN =
@@ -45,9 +47,30 @@ public class OrderService {
             throw new RuntimeException("Address is required.");
         }
         
-        // Match a 6-digit pincode at the end of the address string, e.g., " - 411038"
-        if (!Pattern.compile("-\\s*[1-9][0-9]{5}$").matcher(address.trim()).find()) {
+        java.util.regex.Matcher matcher = Pattern.compile("-\\s*([1-9][0-9]{5})$").matcher(address.trim());
+        if (!matcher.find()) {
             throw new RuntimeException("Invalid delivery address: Please enter a valid 6-digit Indian pincode.");
+        }
+        
+        String pincode = matcher.group(1);
+        
+        // Verify if pincode exists via India Post API
+        try {
+            org.springframework.web.client.RestTemplate restTemplate = new org.springframework.web.client.RestTemplate();
+            String url = "https://api.postalpincode.in/pincode/" + pincode;
+            java.util.List<?> response = restTemplate.getForObject(url, java.util.List.class);
+            if (response != null && !response.isEmpty()) {
+                java.util.Map<?, ?> firstResult = (java.util.Map<?, ?>) response.get(0);
+                String status = (String) firstResult.get("Status");
+                if ("Error".equalsIgnoreCase(status)) {
+                    throw new RuntimeException("The entered pincode (" + pincode + ") is invalid or does not exist in India.");
+                }
+            }
+        } catch (RuntimeException re) {
+            throw re;
+        } catch (Exception e) {
+            // Fallback: If public API is down or times out, we accept the pincode based on regex format
+            log.warn("Failed to contact India Post API for pincode validation: {}", e.getMessage());
         }
 
         Order order = Order.builder()

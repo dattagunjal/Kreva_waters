@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ValidatorFn, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import { CartService } from '../../core/services/cart.service';
 import { OrderService } from '../../core/services/order.service';
 import { PaymentService } from '../../core/services/payment.service';
@@ -30,13 +31,22 @@ export class OrdersComponent implements OnInit {
   historySuccess = '';
   historyError = '';
 
+  // UPI payment modal properties
+  showUpiModal = false;
+  totalForUpi = 0;
+  upiQrCodeUrl = '';
+  upiTransactionId = '';
+  upiError = '';
+  bankDetails: any = null;
+
   constructor(
     private fb: FormBuilder,
     public cartService: CartService,
     private orderService: OrderService,
     private paymentService: PaymentService,
     private authService: AuthService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private http: HttpClient
   ) {
     this.checkoutForm = this.fb.group({
       // Structured address fields
@@ -60,11 +70,27 @@ export class OrdersComponent implements OnInit {
   get areaCtrl()     { return this.checkoutForm.get('area')!; }
   get pincodeCtrl()  { return this.checkoutForm.get('pincode')!; }
 
-  /** Strips any non-digit characters as the user types in the pincode field */
+  /** Strips any non-digit characters as the user types and validates if the pincode exists in India */
   onPincodeInput(event: Event): void {
     const input = event.target as HTMLInputElement;
     const digitsOnly = input.value.replace(/\D/g, '');
     this.pincodeCtrl.setValue(digitsOnly);
+
+    if (digitsOnly.length === 6) {
+      this.http.get<any[]>(`https://api.postalpincode.in/pincode/${digitsOnly}`).subscribe({
+        next: (res) => {
+          if (res && res[0] && res[0].Status === 'Success') {
+            this.pincodeCtrl.setErrors(null);
+          } else {
+            this.pincodeCtrl.setErrors({ invalidPincode: true });
+          }
+        },
+        error: () => {
+          // Fallback if API is down
+          this.pincodeCtrl.setErrors(null);
+        }
+      });
+    }
   }
 
   /** Assembles the three address fields into a single delivery address string */
@@ -97,30 +123,15 @@ export class OrdersComponent implements OnInit {
       );
       this.submitOrder(dto);
     } else if (paymentMethod === 'UPI') {
-      const totalAmount = this.cartService.getTotal();
+      this.totalForUpi = this.cartService.getTotal();
       this.paymentService.getBankDetails().subscribe({
         next: (bank) => {
-          const message = `Please transfer ₹${totalAmount} to the following admin bank account:\n\n` +
-                          `Bank Name: ${bank.bankName}\n` +
-                          `Account Name: ${bank.accountName}\n` +
-                          `Account Number: ${bank.accountNumber}\n` +
-                          `IFSC Code: ${bank.ifsc}\n` +
-                          `UPI ID: ${bank.upiId}\n\n` +
-                          `After transferring, please enter your transaction reference number or UPI transaction ID to place the order:`;
-          const paymentInput = prompt(message, '');
-          
-          if (paymentInput && paymentInput.trim()) {
-            const dto = this.orderService.buildOrderDto(
-              this.cartService.items,
-              this.buildAddress(),
-              'UPI'
-            );
-            dto.paymentId = paymentInput.trim();
-            this.submitOrder(dto);
-          } else {
-            this.loading = false;
-            this.orderError = 'Order placement cancelled. Payment transaction ID is required for UPI payment.';
-          }
+          this.bankDetails = bank;
+          const upiUri = `upi://pay?pa=${bank.upiId}&pn=${encodeURIComponent(bank.accountName)}&am=${this.totalForUpi}&cu=INR`;
+          this.upiQrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(upiUri)}`;
+          this.upiTransactionId = '';
+          this.upiError = '';
+          this.showUpiModal = true;
         },
         error: (err) => {
           this.loading = false;
@@ -130,6 +141,46 @@ export class OrdersComponent implements OnInit {
     } else {
       this.initiateOnlinePayment();
     }
+  }
+
+  onUpiTxInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.upiTransactionId = input.value.replace(/\D/g, '');
+    this.upiError = '';
+  }
+
+  cancelUpiModal(): void {
+    this.showUpiModal = false;
+    this.loading = false;
+  }
+
+  submitUpiPayment(): void {
+    if (!/^\d{12}$/.test(this.upiTransactionId)) {
+      this.upiError = 'Please enter a valid 12-digit UPI transaction reference number.';
+      return;
+    }
+
+    const dto = this.orderService.buildOrderDto(
+      this.cartService.items,
+      this.buildAddress(),
+      'UPI'
+    );
+    dto.paymentId = this.upiTransactionId;
+
+    this.orderService.placeOrder(dto).subscribe({
+      next: () => {
+        this.cartService.clearCart();
+        this.orderSuccess = true;
+        this.loading = false;
+        this.showUpiModal = false;
+        this.loadOrders();
+        setTimeout(() => { this.orderSuccess = false; this.view = 'history'; }, 2500);
+      },
+      error: (err) => {
+        this.upiError = err.error?.message || 'Failed to place order. Please try again.';
+        this.loading = false;
+      }
+    });
   }
 
   private submitOrder(dto: any): void {
