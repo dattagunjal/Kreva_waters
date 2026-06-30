@@ -167,6 +167,14 @@
               (click)="cancelOrder(order.id!)">
         {{ cancelingOrderId === order.id ? 'Cancelling...' : 'Cancel Order' }}
       </button>
+
+      <!-- Download Invoice Button (only shown for Confirmed or Delivered orders) -->
+      <button *ngIf="order.status === 'CONFIRMED' || order.status === 'DELIVERED'" 
+              class="btn-primary" 
+              style="padding:6px 12px; font-size:0.85rem; margin-top:8px; display:inline-flex; align-items:center; justify-content:center; gap:6px; cursor:pointer;"
+              (click)="downloadInvoice(order.id!)">
+        📄 Download Invoice
+      </button>
     </div>
   </div>
 </div>

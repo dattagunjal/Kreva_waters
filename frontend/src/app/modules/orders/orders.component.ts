@@ -302,4 +302,8 @@ export class OrdersComponent implements OnInit {
       }
     });
   }
+
+  downloadInvoice(id: number): void {
+    this.orderService.downloadInvoice(id);
+  }
 }

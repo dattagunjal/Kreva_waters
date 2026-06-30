@@ -229,12 +229,16 @@
           <td>₹{{ order.totalAmount }}</td>
           <td><span class="status" [class]="order.status.toLowerCase()">{{ order.status }}</span></td>
           <td>
-            <select [value]="order.status" (change)="updateOrderStatus(order.id!, $any($event.target).value)" style="padding:4px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle); background:var(--bg-input); color:var(--text-primary);">
-              <option value="PENDING">Pending</option>
-              <option value="CONFIRMED">Confirmed</option>
-              <option value="DELIVERED">Delivered</option>
-              <option value="CANCELLED">Cancelled</option>
-            </select>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <select [value]="order.status" (change)="updateOrderStatus(order.id!, $any($event.target).value)" style="padding:4px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle); background:var(--bg-input); color:var(--text-primary); cursor:pointer;">
+                <option value="PENDING">Pending</option>
+                <option value="CONFIRMED">Confirmed</option>
+                <option value="DELIVERED">Delivered</option>
+                <option value="CANCELLED">Cancelled</option>
+              </select>
+              <button class="btn-secondary" style="padding:4px 8px; font-size:0.8rem; height:30px; display:inline-flex; align-items:center; justify-content:center; border:1px solid var(--primary); color:var(--primary); background:white; margin:0;" (click)="downloadInvoice(order.id!)">Invoice</button>
+              <button class="btn-delete" style="padding:4px 8px; font-size:0.8rem; height:30px; display:inline-flex; align-items:center; justify-content:center; margin:0;" (click)="deleteOrder(order.id!)">Delete</button>
+            </div>
           </td>
         </tr>
         <tr *ngIf="getFilteredOrders().length === 0">

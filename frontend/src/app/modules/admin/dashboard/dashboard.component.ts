@@ -186,6 +186,22 @@ export class AdminDashboardComponent implements OnInit {
     });
   }
 
+  deleteOrder(id: number): void {
+    if (confirm('Are you sure you want to completely delete this order? This action cannot be undone.')) {
+      this.orderService.deleteOrder(id).subscribe({
+        next: () => {
+          this.loadOrders();
+          this.loadStats();
+        },
+        error: (err) => alert(err.error?.message || 'Failed to delete order.')
+      });
+    }
+  }
+
+  downloadInvoice(id: number): void {
+    this.orderService.downloadInvoice(id);
+  }
+
   // ── User management ────────────────────────────────────────────────────────
   updateUserRole(id: number, currentRole: string): void {
     const newRole = currentRole === 'ADMIN' ? 'USER' : 'ADMIN';

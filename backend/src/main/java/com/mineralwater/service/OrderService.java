@@ -190,4 +190,26 @@ public class OrderService {
         order.setStatus(Order.Status.CANCELLED);
         return orderRepository.save(order);
     }
+
+    @Transactional
+    public void deleteOrder(Long id) {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Order not found: " + id));
+
+        // Restore stock if the order is PENDING or CONFIRMED (active but not finalized/cancelled)
+        if (order.getStatus() == Order.Status.PENDING || order.getStatus() == Order.Status.CONFIRMED) {
+            order.getItems().forEach(item -> {
+                Product product = item.getProduct();
+                product.setStock(product.getStock() + item.getQuantity());
+                productRepository.save(product);
+            });
+        }
+
+        orderRepository.delete(order);
+    }
+
+    public Order getOrderById(Long id) {
+        return orderRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Order not found: " + id));
+    }
 }

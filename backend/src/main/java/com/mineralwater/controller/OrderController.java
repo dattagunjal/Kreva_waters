@@ -7,6 +7,9 @@ import com.mineralwater.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +24,7 @@ public class OrderController {
 
     private final OrderService orderService;
     private final NotificationService notificationService;
+    private final com.mineralwater.service.PdfExportService pdfExportService;
 
     @PostMapping
     public ResponseEntity<Order> placeOrder(
@@ -37,6 +41,31 @@ public class OrderController {
         }
 
         return ResponseEntity.ok(order);
+    }
+
+    @GetMapping("/{id}/invoice")
+    public ResponseEntity<byte[]> exportOrderInvoice(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        
+        Order order = orderService.getOrderById(id);
+        
+        // Security check: must be admin OR the owner of the order
+        boolean isAdmin = userDetails.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
+        if (!isAdmin && !order.getUser().getMobileNumber().equals(userDetails.getUsername()) 
+                 && !order.getUser().getEmail().equals(userDetails.getUsername())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        byte[] pdf = pdfExportService.exportOrderInvoicePdf(order);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"ugamwaters-invoice-" + id + ".pdf\"")
+                .contentType(MediaType.APPLICATION_PDF)
+                .contentLength(pdf.length)
+                .body(pdf);
     }
 
     @GetMapping("/my")
@@ -63,5 +92,11 @@ public class OrderController {
             @PathVariable Long id,
             @RequestBody Map<String, String> body) {
         return ResponseEntity.ok(orderService.updateStatus(id, body.get("status")));
+    }
+
+    @DeleteMapping("/admin/{id}")
+    public ResponseEntity<?> deleteOrder(@PathVariable Long id) {
+        orderService.deleteOrder(id);
+        return ResponseEntity.ok(Map.of("message", "Order deleted successfully"));
     }
 }

@@ -63,4 +63,25 @@ export class OrderService {
   cancelOrder(id: number): Observable<Order> {
     return this.http.put<Order>(`${this.apiUrl}/${id}/cancel`, {});
   }
+
+  deleteOrder(id: number): Observable<any> {
+    return this.http.delete<any>(`${this.apiUrl}/admin/${id}`);
+  }
+
+  downloadInvoice(orderId: number): void {
+    const url = `${this.apiUrl}/${orderId}/invoice`;
+    this.http.get(url, { responseType: 'blob' }).subscribe({
+      next: (blob) => {
+        const fileUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = fileUrl;
+        a.download = `ugamwaters-invoice-${orderId}.pdf`;
+        a.click();
+        window.URL.revokeObjectURL(fileUrl);
+      },
+      error: (err) => {
+        alert('Failed to download invoice. Please try again.');
+      }
+    });
+  }
 }

@@ -376,4 +376,108 @@ public class PdfExportService {
         try { return Integer.parseInt(String.valueOf(val)); }
         catch (Exception e) { return 0; }
     }
+
+    public byte[] exportOrderInvoicePdf(com.mineralwater.model.Order order) {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+        try (PdfWriter writer = new PdfWriter(baos);
+             PdfDocument pdf = new PdfDocument(writer);
+             Document doc = new Document(pdf, PageSize.A4)) {
+
+            doc.setMargins(36, 36, 36, 36);
+
+            // Header: Brand & Title
+            Table headerTable = new Table(UnitValue.createPercentArray(new float[]{60, 40})).useAllAvailableWidth();
+            headerTable.addCell(new Cell().add(new Paragraph("UGAM WATERS")
+                    .setFontSize(22).setBold().setFontColor(PRIMARY))
+                    .setBorder(com.itextpdf.layout.borders.Border.NO_BORDER));
+            headerTable.addCell(new Cell().add(new Paragraph("TAX INVOICE")
+                    .setFontSize(22).setBold().setFontColor(MUTED).setTextAlignment(TextAlignment.RIGHT))
+                    .setBorder(com.itextpdf.layout.borders.Border.NO_BORDER));
+            doc.add(headerTable);
+
+            addDivider(doc);
+
+            // Business info vs Invoice meta
+            Table infoTable = new Table(UnitValue.createPercentArray(new float[]{50, 50})).useAllAvailableWidth();
+            Cell companyCell = new Cell().add(new Paragraph("From:")
+                    .setBold().setFontColor(PRIMARY).setFontSize(11))
+                    .add(new Paragraph("Ugam Waters Office\nBelhe, Alephata, Junnar,\nDist: Pune - 412410, Maharashtra\nEmail: info@ugamwaters.in\nMobile: +91 8390252489")
+                    .setFontSize(9))
+                    .setBorder(com.itextpdf.layout.borders.Border.NO_BORDER);
+            
+            Cell metaCell = new Cell().add(new Paragraph()
+                    .add(new Text("Invoice No: ").setBold())
+                    .add(new Text("INV-" + order.getId() + "\n"))
+                    .add(new Text("Date: ").setBold())
+                    .add(new Text(order.getCreatedAt() != null ? order.getCreatedAt().toLocalDate().toString() : LocalDate.now().toString() + "\n"))
+                    .add(new Text("Payment Method: ").setBold())
+                    .add(new Text((order.getPaymentId() == null || order.getPaymentId().equals("COD") ? "Cash on Delivery" : (order.getPaymentId().startsWith("pi_") ? "Card / Stripe" : "UPI")) + "\n"))
+                    .add(new Text("Payment Status: ").setBold())
+                    .add(new Text(order.getPaymentStatus().toString() + "\n"))
+                    .add(new Text(order.getPaymentId() != null && !order.getPaymentId().isBlank() ? "Txn ID: " + order.getPaymentId() : "")))
+                    .setFontSize(9)
+                    .setTextAlignment(TextAlignment.RIGHT)
+                    .setBorder(com.itextpdf.layout.borders.Border.NO_BORDER);
+            
+            infoTable.addCell(companyCell);
+            infoTable.addCell(metaCell);
+            doc.add(infoTable);
+
+            doc.add(new Paragraph("\n"));
+
+            // Delivery Details card
+            Table billTable = new Table(UnitValue.createPercentArray(new float[]{100})).useAllAvailableWidth();
+            Cell billCell = new Cell().add(new Paragraph("Deliver To:")
+                    .setBold().setFontColor(PRIMARY).setFontSize(11))
+                    .add(new Paragraph()
+                            .add(new Text("Customer: ").setBold())
+                            .add(new Text(order.getUser().getName() + "\n"))
+                            .add(new Text("Mobile: ").setBold())
+                            .add(new Text(order.getUser().getMobileNumber() + "\n"))
+                            .add(new Text("Delivery Address: ").setBold())
+                            .add(new Text(order.getAddress())))
+                    .setFontSize(9)
+                    .setBackgroundColor(LIGHT_BG)
+                    .setPadding(10)
+                    .setBorder(new SolidBorder(BORDER, 1));
+            billTable.addCell(billCell);
+            doc.add(billTable);
+
+            doc.add(new Paragraph("\n"));
+
+            // Items Table
+            Table itemsTable = new Table(UnitValue.createPercentArray(new float[]{40, 20, 20, 20})).useAllAvailableWidth();
+            itemsTable.addHeaderCell(new Cell().add(new Paragraph("Product Details").setBold().setFontColor(ColorConstants.WHITE)).setBackgroundColor(PRIMARY).setPadding(6));
+            itemsTable.addHeaderCell(new Cell().add(new Paragraph("Price").setBold().setFontColor(ColorConstants.WHITE).setTextAlignment(TextAlignment.RIGHT)).setBackgroundColor(PRIMARY).setPadding(6));
+            itemsTable.addHeaderCell(new Cell().add(new Paragraph("Qty").setBold().setFontColor(ColorConstants.WHITE).setTextAlignment(TextAlignment.RIGHT)).setBackgroundColor(PRIMARY).setPadding(6));
+            itemsTable.addHeaderCell(new Cell().add(new Paragraph("Amount").setBold().setFontColor(ColorConstants.WHITE).setTextAlignment(TextAlignment.RIGHT)).setBackgroundColor(PRIMARY).setPadding(6));
+
+            for (com.mineralwater.model.OrderItem item : order.getItems()) {
+                Paragraph pDetails = new Paragraph(item.getProduct().getName()).setFontSize(9);
+                if (item.getBusinessName() != null && !item.getBusinessName().isBlank()) {
+                    pDetails.add(new Text("\nCustomization: " + item.getBusinessName()).setFontSize(8).setFontColor(MUTED));
+                }
+                itemsTable.addCell(new Cell().add(pDetails).setPadding(6));
+                itemsTable.addCell(new Cell().add(new Paragraph("₹" + item.getPrice()).setFontSize(9).setTextAlignment(TextAlignment.RIGHT)).setPadding(6));
+                itemsTable.addCell(new Cell().add(new Paragraph(item.getQuantity().toString()).setFontSize(9).setTextAlignment(TextAlignment.RIGHT)).setPadding(6));
+                itemsTable.addCell(new Cell().add(new Paragraph("₹" + (item.getPrice() * item.getQuantity())).setFontSize(9).setTextAlignment(TextAlignment.RIGHT)).setPadding(6));
+            }
+
+            itemsTable.addCell(new Cell(1, 3).add(new Paragraph("Grand Total").setBold().setTextAlignment(TextAlignment.RIGHT)).setPadding(6).setBorder(com.itextpdf.layout.borders.Border.NO_BORDER));
+            itemsTable.addCell(new Cell().add(new Paragraph("₹" + order.getTotalAmount()).setBold().setFontColor(PRIMARY).setTextAlignment(TextAlignment.RIGHT)).setPadding(6));
+            doc.add(itemsTable);
+
+            addDivider(doc);
+
+            Paragraph terms = new Paragraph("Thank you for your business!\nIf you have any questions about this invoice, please contact support@ugamwaters.in")
+                    .setFontSize(8).setFontColor(MUTED).setTextAlignment(TextAlignment.CENTER).setItalic();
+            doc.add(terms);
+
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to generate order invoice PDF: " + e.getMessage(), e);
+        }
+
+        return baos.toByteArray();
+    }
 }
