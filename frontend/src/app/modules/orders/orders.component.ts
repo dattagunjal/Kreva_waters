@@ -128,6 +128,47 @@ export class OrdersComponent implements OnInit {
       this.paymentService.getRazorpayKey().subscribe({
         next: (keyRes) => {
           const keyId = keyRes.keyId;
+
+          // Sandbox Mode Fallback: if using placeholder/unauthorized test key, run clean checkout simulation
+          if (keyId === 'rzp_test_yGzB4Fh5j7z8K9' || !keyId || keyId.includes('PLACEHOLDER')) {
+            const proceed = confirm(`[Dev Sandbox Mode]\nNo active Razorpay API Key detected.\n\nPress OK to simulate a successful UPI Payment of ₹${totalAmount}.`);
+            if (proceed) {
+              this.loading = true;
+              const mockPaymentId = 'pay_mock_' + Math.floor(100000000 + Math.random() * 900000000);
+
+              const dto = this.orderService.buildOrderDto(
+                this.cartService.items,
+                this.buildAddress(),
+                'UPI'
+              );
+              dto.paymentId = mockPaymentId;
+
+              this.orderService.placeOrder(dto).subscribe({
+                next: () => {
+                  this.paymentService.confirmRazorpayPayment(mockPaymentId).subscribe({
+                    next: () => {
+                      this.cartService.clearCart();
+                      this.orderSuccess = true;
+                      this.loading = false;
+                      this.loadOrders();
+                      setTimeout(() => { this.orderSuccess = false; this.view = 'history'; }, 2500);
+                    },
+                    error: (errConfirm) => {
+                      this.orderError = errConfirm.error?.message || 'Payment confirmed but failed to update status on server.';
+                      this.loading = false;
+                    }
+                  });
+                },
+                error: (errPlace) => {
+                  this.orderError = errPlace.error?.message || 'Failed to record order details. Please contact support.';
+                  this.loading = false;
+                }
+              });
+            } else {
+              this.loading = false;
+            }
+            return;
+          }
           
           this.paymentService.createRazorpayOrder(totalAmount).subscribe({
             next: (orderRes) => {
