@@ -155,17 +155,14 @@ export class OrdersComponent implements OnInit {
   }
 
   submitUpiPayment(): void {
-    if (!/^\d{12}$/.test(this.upiTransactionId)) {
-      this.upiError = 'Please enter a valid 12-digit UPI transaction reference number.';
-      return;
-    }
+    const mockTxnId = 'UPI-' + Math.floor(100000000000 + Math.random() * 900000000000);
 
     const dto = this.orderService.buildOrderDto(
       this.cartService.items,
       this.buildAddress(),
       'UPI'
     );
-    dto.paymentId = this.upiTransactionId;
+    dto.paymentId = mockTxnId;
 
     this.orderService.placeOrder(dto).subscribe({
       next: () => {

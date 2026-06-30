@@ -203,20 +203,9 @@
       <div><strong>IFSC Code:</strong> {{ bankDetails?.ifsc }}</div>
     </div>
 
-    <!-- Transaction ID Form -->
-    <div style="text-align:left; margin-bottom:1.5rem;">
-      <label style="display:block; font-weight:600; font-size:0.875rem; margin-bottom:6px; color:var(--text);">UPI Transaction ID / Ref No (12 Digits) <span class="required-star">*</span></label>
-      <input 
-        type="text" 
-        placeholder="Enter 12-digit UTR/Ref number" 
-        style="width:100%; padding:0.75rem 1rem; border:1px solid #cbd5e1; border-radius:8px; font-size:0.95rem; font-family:monospace;"
-        maxlength="12"
-        [(ngModel)]="upiTransactionId"
-        (input)="onUpiTxInput($event)"
-      />
-      <span *ngIf="upiError" style="color:#b91c1c; font-size:0.8rem; font-weight:500; margin-top:4px; display:block;">
-        {{ upiError }}
-      </span>
+    <!-- Error display -->
+    <div *ngIf="upiError" style="color:#b91c1c; font-size:0.9rem; font-weight:500; margin-bottom:1.5rem; text-align:left; background:#fee2e2; border:1px solid #fca5a5; padding:10px; border-radius:8px; line-height:1.4;">
+      ⚠️ {{ upiError }}
     </div>
 
     <!-- Actions -->
@@ -224,7 +213,7 @@
       <button class="btn-secondary" style="border:1px solid #cbd5e1; background:white; color:var(--text); padding:0.75rem; border-radius:8px; cursor:pointer;" (click)="cancelUpiModal()">
         Cancel
       </button>
-      <button class="btn-primary" style="padding:0.75rem; border-radius:8px; font-weight:600;" [disabled]="!upiTransactionId || upiTransactionId.length < 12" (click)="submitUpiPayment()">
+      <button class="btn-primary" style="padding:0.75rem; border-radius:8px; font-weight:600;" (click)="submitUpiPayment()">
         Confirm Payment
       </button>
     </div>

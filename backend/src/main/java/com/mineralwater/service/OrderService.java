@@ -57,6 +57,12 @@ public class OrderService {
         // Verify if pincode exists via India Post API
         try {
             org.springframework.web.client.RestTemplate restTemplate = new org.springframework.web.client.RestTemplate();
+            
+            org.springframework.http.client.SimpleClientHttpRequestFactory factory = new org.springframework.http.client.SimpleClientHttpRequestFactory();
+            factory.setConnectTimeout(3000);
+            factory.setReadTimeout(3000);
+            restTemplate.setRequestFactory(factory);
+
             String url = "https://api.postalpincode.in/pincode/" + pincode;
             java.util.List<?> response = restTemplate.getForObject(url, java.util.List.class);
             if (response != null && !response.isEmpty()) {
@@ -66,11 +72,10 @@ public class OrderService {
                     throw new RuntimeException("The entered pincode (" + pincode + ") is invalid or does not exist in India.");
                 }
             }
-        } catch (RuntimeException re) {
-            throw re;
+        } catch (org.springframework.web.client.RestClientException e) {
+            log.warn("Failed to contact India Post API (RestClientException): {}. Falling back to format validation.", e.getMessage());
         } catch (Exception e) {
-            // Fallback: If public API is down or times out, we accept the pincode based on regex format
-            log.warn("Failed to contact India Post API for pincode validation: {}", e.getMessage());
+            log.warn("Failed to contact India Post API (General Exception): {}. Falling back to format validation.", e.getMessage());
         }
 
         Order order = Order.builder()
