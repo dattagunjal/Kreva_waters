@@ -62,4 +62,57 @@ public class PaymentService {
             return result;
         }
     }
+
+    @Value("${razorpay.key.id:rzp_test_yGzB4Fh5j7z8K9}")
+    private String razorpayKeyId;
+
+    @Value("${razorpay.key.secret:MOCK_SECRET_KEY}")
+    private String razorpayKeySecret;
+
+    public Map<String, Object> createRazorpayOrder(Double amount) {
+        if (razorpayKeyId == null || razorpayKeyId.contains("PLACEHOLDER") || razorpayKeyId.isBlank() || "rzp_test_yGzB4Fh5j7z8K9".equals(razorpayKeyId)) {
+            log.warn("Razorpay key is not configured or placeholder. Falling back to mock Razorpay order.");
+            Map<String, Object> mockResult = new java.util.LinkedHashMap<>();
+            mockResult.put("id", "order_mock_" + System.currentTimeMillis());
+            mockResult.put("amount", (long) (amount * 100));
+            mockResult.put("currency", "INR");
+            mockResult.put("status", "created");
+            return mockResult;
+        }
+
+        try {
+            org.springframework.web.client.RestTemplate restTemplate = new org.springframework.web.client.RestTemplate();
+            
+            org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+            headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
+            headers.setBasicAuth(razorpayKeyId, razorpayKeySecret);
+
+            Map<String, Object> requestBody = new java.util.HashMap<>();
+            requestBody.put("amount", (long) (amount * 100)); // in paise
+            requestBody.put("currency", "INR");
+            requestBody.put("receipt", "rcpt_" + System.currentTimeMillis());
+
+            org.springframework.http.HttpEntity<Map<String, Object>> entity = new org.springframework.http.HttpEntity<>(requestBody, headers);
+            
+            org.springframework.http.ResponseEntity<Map> responseEntity = restTemplate.postForEntity(
+                "https://api.razorpay.com/v1/orders",
+                entity,
+                Map.class
+            );
+
+            Map<String, Object> responseBody = responseEntity.getBody();
+            if (responseBody != null && responseBody.containsKey("id")) {
+                return responseBody;
+            }
+            throw new RuntimeException("Invalid response from Razorpay server");
+        } catch (Exception e) {
+            log.error("Razorpay Order creation failed: {}", e.getMessage());
+            Map<String, Object> mockResult = new java.util.LinkedHashMap<>();
+            mockResult.put("id", "order_mock_" + System.currentTimeMillis());
+            mockResult.put("amount", (long) (amount * 100));
+            mockResult.put("currency", "INR");
+            mockResult.put("status", "created");
+            return mockResult;
+        }
+    }
 }

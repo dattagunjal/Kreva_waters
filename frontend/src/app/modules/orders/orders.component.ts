@@ -126,87 +126,97 @@ export class OrdersComponent implements OnInit {
     } else if (paymentMethod === 'UPI') {
       const totalAmount = this.cartService.getTotal();
       this.paymentService.getRazorpayKey().subscribe({
-        next: (res) => {
-          const keyId = res.keyId;
-          const user = this.authService.currentUser;
+        next: (keyRes) => {
+          const keyId = keyRes.keyId;
+          
+          this.paymentService.createRazorpayOrder(totalAmount).subscribe({
+            next: (orderRes) => {
+              const user = this.authService.currentUser;
 
-          const options: any = {
-            key: keyId,
-            amount: totalAmount * 100, // in paise
-            currency: 'INR',
-            name: 'Ugam Waters',
-            description: 'Mineral Water Delivery Payment',
-            image: 'https://ugamwaters.in/assets/images/logo.png',
-            prefill: {
-              name: user?.name || '',
-              email: user?.email || '',
-              contact: user?.mobileNumber || ''
-            },
-            theme: {
-              color: '#1a6bbf'
-            },
-            config: {
-              display: {
-                blocks: {
-                  banks: {
-                    name: 'Pay via UPI / QR Code',
-                    instruments: [
-                      {
-                        method: 'upi'
+              const options: any = {
+                key: keyId,
+                amount: totalAmount * 100, // in paise
+                currency: 'INR',
+                name: 'Ugam Waters',
+                description: 'Mineral Water Delivery Payment',
+                image: 'https://ugamwaters.in/assets/images/logo.png',
+                order_id: orderRes.id,
+                prefill: {
+                  name: user?.name || '',
+                  email: user?.email || '',
+                  contact: user?.mobileNumber || ''
+                },
+                theme: {
+                  color: '#1a6bbf'
+                },
+                config: {
+                  display: {
+                    blocks: {
+                      banks: {
+                        name: 'Pay via UPI / QR Code',
+                        instruments: [
+                          {
+                            method: 'upi'
+                          }
+                        ]
                       }
-                    ]
+                    },
+                    sequence: ['block.banks'],
+                    preferences: {
+                      show_default_blocks: false
+                    }
                   }
                 },
-                sequence: ['block.banks'],
-                preferences: {
-                  show_default_blocks: false
-                }
-              }
-            },
-            handler: (response: any) => {
-              this.loading = true;
-              this.orderError = '';
+                handler: (response: any) => {
+                  this.loading = true;
+                  this.orderError = '';
 
-              const dto = this.orderService.buildOrderDto(
-                this.cartService.items,
-                this.buildAddress(),
-                'UPI'
-              );
-              dto.paymentId = response.razorpay_payment_id;
+                  const dto = this.orderService.buildOrderDto(
+                    this.cartService.items,
+                    this.buildAddress(),
+                    'UPI'
+                  );
+                  dto.paymentId = response.razorpay_payment_id;
 
-              this.orderService.placeOrder(dto).subscribe({
-                next: () => {
-                  this.paymentService.confirmRazorpayPayment(response.razorpay_payment_id).subscribe({
+                  this.orderService.placeOrder(dto).subscribe({
                     next: () => {
-                      this.cartService.clearCart();
-                      this.orderSuccess = true;
-                      this.loading = false;
-                      this.loadOrders();
-                      setTimeout(() => { this.orderSuccess = false; this.view = 'history'; }, 2500);
+                      this.paymentService.confirmRazorpayPayment(response.razorpay_payment_id).subscribe({
+                        next: () => {
+                          this.cartService.clearCart();
+                          this.orderSuccess = true;
+                          this.loading = false;
+                          this.loadOrders();
+                          setTimeout(() => { this.orderSuccess = false; this.view = 'history'; }, 2500);
+                        },
+                        error: (errConfirm) => {
+                          this.orderError = errConfirm.error?.message || 'Payment confirmed but failed to update status on server.';
+                          this.loading = false;
+                        }
+                      });
                     },
-                    error: (errConfirm) => {
-                      this.orderError = errConfirm.error?.message || 'Payment confirmed but failed to update status on server.';
+                    error: (errPlace) => {
+                      this.orderError = errPlace.error?.message || 'Failed to record order details. Please contact support.';
                       this.loading = false;
                     }
                   });
                 },
-                error: (errPlace) => {
-                  this.orderError = errPlace.error?.message || 'Failed to record order details. Please contact support.';
-                  this.loading = false;
+                modal: {
+                  ondismiss: () => {
+                    this.loading = false;
+                  }
                 }
-              });
-            },
-            modal: {
-              ondismiss: () => {
-                this.loading = false;
-              }
-            }
-          };
+              };
 
-          const rzp = new (window as any).Razorpay(options);
-          rzp.open();
+              const rzp = new (window as any).Razorpay(options);
+              rzp.open();
+            },
+            error: (errOrder) => {
+              this.loading = false;
+              this.orderError = errOrder.error?.message || 'Failed to create payment order. Please try again.';
+            }
+          });
         },
-        error: (err) => {
+        error: (errKey) => {
           this.loading = false;
           this.orderError = 'Failed to initialize payment gateway. Please try again.';
         }

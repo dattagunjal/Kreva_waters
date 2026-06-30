@@ -62,6 +62,13 @@ public class PaymentController {
         return ResponseEntity.ok(Map.of("keyId", razorpayKeyId));
     }
 
+    @PostMapping("/razorpay/create-order")
+    public ResponseEntity<Map<String, Object>> createRazorpayOrder(@RequestBody Map<String, Object> request) {
+        Double amount = Double.valueOf(request.get("amount").toString());
+        Map<String, Object> orderData = paymentService.createRazorpayOrder(amount);
+        return ResponseEntity.ok(orderData);
+    }
+
     @PostMapping("/razorpay/confirm")
     public ResponseEntity<?> confirmRazorpay(@RequestBody Map<String, String> request) {
         String paymentId = request.get("paymentId");
