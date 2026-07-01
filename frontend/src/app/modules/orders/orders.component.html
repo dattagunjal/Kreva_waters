@@ -101,7 +101,7 @@
             Pincode is required.
           </span>
           <span class="error" *ngIf="pincodeCtrl.value && pincodeCtrl.errors?.['invalidPincode']">
-            This pincode is invalid or not available for delivery.
+            The entered pincode ({{ pincodeCtrl.value }}) is invalid or does not exist in India.
           </span>
         </div>
 
@@ -136,6 +136,7 @@
       </div>
       <p class="order-meta">📍 {{ order.address }}</p>
       <p class="order-meta">🕐 {{ order.createdAt | date:'d MMM y, h:mm a' }}</p>
+      <p class="order-meta">💳 <strong>Payment Method:</strong> {{ order.paymentMethod === 'COD' ? '💵 Cash on Delivery' : '📱 UPI' }}</p>
 
       <!-- Line items -->
       <div class="order-items" *ngIf="order.items?.length">
@@ -173,14 +174,6 @@
               style="padding:6px 12px; font-size:0.85rem; margin-top:8px; display:inline-flex; align-items:center; justify-content:center; gap:6px; cursor:pointer;"
               (click)="downloadInvoice(order.id!)">
         📄 Download Invoice
-      </button>
-
-      <!-- Pay Now Button (only for Pending UPI orders) -->
-      <button *ngIf="order.paymentStatus === 'PENDING' && isUpiOrder(order)" 
-              class="btn-primary" 
-              style="padding:6px 12px; font-size:0.85rem; margin-top:8px; display:inline-flex; align-items:center; justify-content:center; gap:6px; cursor:pointer;"
-              (click)="openPayNowModal(order)">
-        📱 Pay Now (UPI)
       </button>
     </div>
   </div>

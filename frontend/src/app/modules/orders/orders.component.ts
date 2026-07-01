@@ -48,6 +48,7 @@ export class OrdersComponent implements OnInit {
   isCheckoutPay = false;
   enteredTxnId = '';
   isVerifyingUpi = false;
+  upiFocusListener: any = null;
 
   constructor(
     private fb: FormBuilder,
@@ -149,6 +150,7 @@ export class OrdersComponent implements OnInit {
           this.upiDeepLinkUrl = upiUri;
           this.upiQrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(upiUri)}`;
           this.showPayNowModal = true;
+          this.startAutomaticUpiVerification();
         },
         error: () => {
           alert('Failed to load bank payment details. Please try again.');
@@ -329,6 +331,10 @@ export class OrdersComponent implements OnInit {
       clearTimeout(this.upiTimer);
       this.upiTimer = null;
     }
+    if (this.upiFocusListener) {
+      window.removeEventListener('focus', this.upiFocusListener);
+      this.upiFocusListener = null;
+    }
     this.showPayNowModal = false;
     this.payNowOrder = null;
     this.enteredUtr = '';
@@ -338,11 +344,35 @@ export class OrdersComponent implements OnInit {
     this.loading = false;
   }
 
-  confirmUpiPaymentClick(): void {
+  startAutomaticUpiVerification(): void {
+    // 1. Detect when user returns back to browser window (mobile focus resume)
+    this.upiFocusListener = () => {
+      this.triggerUpiSuccess();
+    };
+    window.addEventListener('focus', this.upiFocusListener);
+
+    // 2. Fallback timeout of 10 seconds for desktop
+    this.upiTimer = setTimeout(() => {
+      this.triggerUpiSuccess();
+    }, 10000);
+  }
+
+  triggerUpiSuccess(): void {
+    if (this.upiFocusListener) {
+      window.removeEventListener('focus', this.upiFocusListener);
+      this.upiFocusListener = null;
+    }
+    if (this.upiTimer) {
+      clearTimeout(this.upiTimer);
+      this.upiTimer = null;
+    }
+
+    if (this.showPaymentSuccess || this.isVerifyingUpi) return;
+
     this.isVerifyingUpi = true;
     
-    // Simulate Axis bank verification delay of 2 seconds
-    this.upiTimer = setTimeout(() => {
+    // Simulate banking transaction verification status for 1.5 seconds
+    setTimeout(() => {
       this.isVerifyingUpi = false;
       this.showPaymentSuccess = true;
 
@@ -370,6 +400,6 @@ export class OrdersComponent implements OnInit {
           this.closePayNowModal();
         }
       });
-    }, 2000);
+    }, 1500);
   }
 }
