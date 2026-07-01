@@ -159,6 +159,24 @@ public class OrderService {
         return order;
     }
 
+    @Transactional
+    public Order confirmPayment(String paymentIntentId, String username) {
+        Order order = orderRepository.findByPaymentId(paymentIntentId)
+                .orElseThrow(() -> new RuntimeException("Order not found for payment ID: " + paymentIntentId));
+
+        boolean isOwner = (order.getUser().getMobileNumber() != null && order.getUser().getMobileNumber().equals(username))
+                || (order.getUser().getEmail() != null && order.getUser().getEmail().equals(username));
+        if (!isOwner) {
+            throw new RuntimeException("Unauthorized payment confirmation request");
+        }
+
+        if (order.getPaymentStatus() != com.mineralwater.model.Order.PaymentStatus.PAID) {
+            order.setPaymentStatus(com.mineralwater.model.Order.PaymentStatus.PAID);
+            order = orderRepository.save(order);
+        }
+        return order;
+    }
+
     @Transactional(readOnly = true)
     public List<Order> getMyOrders(String principal) {
         User user = findUserByPrincipal(principal);

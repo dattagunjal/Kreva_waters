@@ -70,9 +70,11 @@ public class PaymentController {
     }
 
     @PostMapping("/razorpay/confirm")
-    public ResponseEntity<?> confirmRazorpay(@RequestBody Map<String, String> request) {
+    public ResponseEntity<?> confirmRazorpay(
+            @RequestBody Map<String, String> request,
+            @org.springframework.security.core.annotation.AuthenticationPrincipal org.springframework.security.core.userdetails.UserDetails userDetails) {
         String paymentId = request.get("paymentId");
-        com.mineralwater.model.Order order = orderService.confirmPayment(paymentId);
+        com.mineralwater.model.Order order = orderService.confirmPayment(paymentId, userDetails.getUsername());
         try {
             notificationService.sendOrderNotification(order);
         } catch (Exception e) {
