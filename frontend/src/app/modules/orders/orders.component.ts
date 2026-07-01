@@ -39,6 +39,9 @@ export class OrdersComponent implements OnInit {
   upiError = '';
   bankDetails: any = null;
   upiTimer: any = null;
+  showPayNowModal = false;
+  payNowOrder: any = null;
+  upiDeepLinkUrl = '';
 
   constructor(
     private fb: FormBuilder,
@@ -124,124 +127,29 @@ export class OrdersComponent implements OnInit {
       );
       this.submitOrder(dto);
     } else if (paymentMethod === 'UPI') {
-      const totalAmount = this.cartService.getTotal();
-      this.paymentService.getRazorpayKey().subscribe({
-        next: (keyRes) => {
-          const keyId = keyRes.keyId;
+      const dto = this.orderService.buildOrderDto(
+        this.cartService.items,
+        this.buildAddress(),
+        'UPI'
+      );
+      dto.paymentId = 'UPI-' + Math.floor(100000000000 + Math.random() * 900000000000);
 
-          // Sandbox Mode Fallback: if using placeholder/unauthorized test key, run clean checkout simulation
-          if (keyId === 'rzp_test_yGzB4Fh5j7z8K9' || !keyId || keyId.includes('PLACEHOLDER')) {
-            const proceed = confirm(`[Dev Sandbox Mode]\nNo active Razorpay API Key detected.\n\nPress OK to simulate a successful UPI Payment of ₹${totalAmount}.`);
-            if (proceed) {
-              this.loading = true;
-              const mockPaymentId = 'pay_mock_' + Math.floor(100000000 + Math.random() * 900000000);
-
-              const dto = this.orderService.buildOrderDto(
-                this.cartService.items,
-                this.buildAddress(),
-                'UPI'
-              );
-              dto.paymentId = mockPaymentId;
-
-              this.orderService.placeOrder(dto).subscribe({
-                next: () => {
-                  this.paymentService.confirmRazorpayPayment(mockPaymentId).subscribe({
-                    next: () => {
-                      this.cartService.clearCart();
-                      this.orderSuccess = true;
-                      this.loading = false;
-                      this.loadOrders();
-                      setTimeout(() => { this.orderSuccess = false; this.view = 'history'; }, 2500);
-                    },
-                    error: (errConfirm) => {
-                      this.orderError = errConfirm.error?.message || 'Payment confirmed but failed to update status on server.';
-                      this.loading = false;
-                    }
-                  });
-                },
-                error: (errPlace) => {
-                  this.orderError = errPlace.error?.message || 'Failed to record order details. Please contact support.';
-                  this.loading = false;
-                }
-              });
-            } else {
-              this.loading = false;
-            }
-            return;
-          }
-          
-          this.paymentService.createRazorpayOrder(totalAmount).subscribe({
-            next: (orderRes) => {
-              const user = this.authService.currentUser;
-
-              const options: any = {
-                key: keyId,
-                amount: totalAmount * 100, // in paise
-                currency: 'INR',
-                name: 'Ugam Waters',
-                description: 'Mineral Water Delivery Payment',
-                image: 'https://ugamwaters.in/assets/images/logo.png',
-                order_id: orderRes.id,
-                prefill: {
-                  name: user?.name || '',
-                  email: user?.email || '',
-                  contact: user?.mobileNumber || ''
-                },
-                theme: {
-                  color: '#1a6bbf'
-                },
-                handler: (response: any) => {
-                  this.loading = true;
-                  this.orderError = '';
-
-                  const dto = this.orderService.buildOrderDto(
-                    this.cartService.items,
-                    this.buildAddress(),
-                    'UPI'
-                  );
-                  dto.paymentId = response.razorpay_payment_id;
-
-                  this.orderService.placeOrder(dto).subscribe({
-                    next: () => {
-                      this.paymentService.confirmRazorpayPayment(response.razorpay_payment_id).subscribe({
-                        next: () => {
-                          this.cartService.clearCart();
-                          this.orderSuccess = true;
-                          this.loading = false;
-                          this.loadOrders();
-                          setTimeout(() => { this.orderSuccess = false; this.view = 'history'; }, 2500);
-                        },
-                        error: (errConfirm) => {
-                          this.orderError = errConfirm.error?.message || 'Payment confirmed but failed to update status on server.';
-                          this.loading = false;
-                        }
-                      });
-                    },
-                    error: (errPlace) => {
-                      this.orderError = errPlace.error?.message || 'Failed to record order details. Please contact support.';
-                      this.loading = false;
-                    }
-                  });
-                },
-                modal: {
-                  ondismiss: () => {
-                    this.loading = false;
-                  }
-                }
-              };
-
-              const rzp = new (window as any).Razorpay(options);
-              rzp.open();
-            },
-            error: (errOrder) => {
-              this.loading = false;
-              this.orderError = errOrder.error?.message || 'Failed to create payment order. Please try again.';
-            }
-          });
-        },
-        error: (errKey) => {
+      this.orderService.placeOrder(dto).subscribe({
+        next: (newOrder) => {
+          this.cartService.clearCart();
+          this.orderSuccess = true;
           this.loading = false;
-          this.orderError = 'Failed to initialize payment gateway. Please try again.';
+          this.loadOrders();
+          
+          setTimeout(() => {
+            this.orderSuccess = false;
+            this.view = 'history';
+            this.openPayNowModal(newOrder);
+          }, 2000);
+        },
+        error: (err) => {
+          this.orderError = err.error?.message || 'Failed to place order. Please try again.';
+          this.loading = false;
         }
       });
     } else {
@@ -380,5 +288,34 @@ export class OrdersComponent implements OnInit {
 
   downloadInvoice(id: number): void {
     this.orderService.downloadInvoice(id);
+  }
+
+  isUpiOrder(order: any): boolean {
+    return order.paymentId && order.paymentId.startsWith('UPI-');
+  }
+
+  isMobileDevice(): boolean {
+    return typeof window !== 'undefined' && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  }
+
+  openPayNowModal(order: any): void {
+    this.payNowOrder = order;
+    this.paymentService.getBankDetails().subscribe({
+      next: (bank) => {
+        this.bankDetails = bank;
+        const upiUri = `upi://pay?pa=${bank.upiId}&pn=${encodeURIComponent(bank.accountName)}&am=${order.totalAmount}&cu=INR`;
+        this.upiDeepLinkUrl = upiUri;
+        this.upiQrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(upiUri)}`;
+        this.showPayNowModal = true;
+      },
+      error: () => {
+        alert('Failed to load bank payment details. Please try again.');
+      }
+    });
+  }
+
+  closePayNowModal(): void {
+    this.showPayNowModal = false;
+    this.payNowOrder = null;
   }
 }
