@@ -105,27 +105,25 @@ export class OrdersComponent implements OnInit {
   }
 
   /** Assembles the three address fields into a single delivery address string */
-  private buildAddress(): string {
+  buildAddress(): string {
     const { houseNo, area, pincode } = this.checkoutForm.value;
     return `${houseNo.trim()}, ${area.trim()} - ${pincode.trim()}`;
   }
 
   loadOrders(): void {
     this.orderService.getMyOrders().subscribe({
-      next: (data: Order[]) => this.myOrders = data,
-      error: () => {}
+      next: (orders) => this.myOrders = orders,
+      error: (err) => console.error('Failed to load orders', err)
     });
   }
 
   placeOrder(): void {
-    this.checkoutForm.markAllAsTouched();
-    if (this.checkoutForm.invalid || this.cartService.items.length === 0) return;
-
-    this.loading = true;
-    this.orderError = '';
+    if (this.checkoutForm.invalid) {
+      this.checkoutForm.markAllAsTouched();
+      return;
+    }
 
     const paymentMethod = this.checkoutForm.value.paymentMethod;
-
     if (paymentMethod === 'COD') {
       const dto = this.orderService.buildOrderDto(
         this.cartService.items,
@@ -135,28 +133,9 @@ export class OrdersComponent implements OnInit {
       this.submitOrder(dto);
     } else if (paymentMethod === 'UPI') {
       if (this.cartService.items.length === 0) return;
-
-      this.isCheckoutPay = true;
-      this.totalForUpi = this.cartService.getTotal();
-      this.enteredTxnId = 'TXN' + Math.floor(1000000000 + Math.random() * 9000000000);
-      this.enteredUtr = Math.floor(100000000000 + Math.random() * 900000000000).toString();
-      this.showPaymentSuccess = false;
-      this.isVerifyingUpi = false;
-
-      this.paymentService.getBankDetails().subscribe({
-        next: (bank) => {
-          this.bankDetails = bank;
-          const upiUri = `upi://pay?pa=${bank.upiId}&pn=${encodeURIComponent(bank.accountName)}&am=${this.totalForUpi}&cu=INR`;
-          this.upiDeepLinkUrl = upiUri;
-          this.upiQrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(upiUri)}`;
-          this.showPayNowModal = true;
-          this.startAutomaticUpiVerification();
-        },
-        error: () => {
-          alert('Failed to load bank payment details. Please try again.');
-          this.loading = false;
-        }
-      });
+      this.loading = true;
+      this.orderError = '';
+      this.initiateRazorpayUpi();
     } else {
       this.initiateOnlinePayment();
     }
@@ -303,29 +282,6 @@ export class OrdersComponent implements OnInit {
     return typeof window !== 'undefined' && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
   }
 
-  openPayNowModal(order: any): void {
-    this.payNowOrder = order;
-    this.totalForUpi = order.totalAmount;
-    this.isCheckoutPay = false;
-    this.enteredUtr = order.paymentId || '';
-    this.enteredTxnId = 'TXN' + Math.floor(1000000000 + Math.random() * 9000000000);
-    this.showPaymentSuccess = false;
-    this.isVerifyingUpi = false;
-
-    this.paymentService.getBankDetails().subscribe({
-      next: (bank) => {
-        this.bankDetails = bank;
-        const upiUri = `upi://pay?pa=${bank.upiId}&pn=${encodeURIComponent(bank.accountName)}&am=${order.totalAmount}&cu=INR`;
-        this.upiDeepLinkUrl = upiUri;
-        this.upiQrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(upiUri)}`;
-        this.showPayNowModal = true;
-      },
-      error: () => {
-        alert('Failed to load bank payment details. Please try again.');
-      }
-    });
-  }
-
   closePayNowModal(): void {
     if (this.upiTimer) {
       clearTimeout(this.upiTimer);
@@ -344,62 +300,139 @@ export class OrdersComponent implements OnInit {
     this.loading = false;
   }
 
-  startAutomaticUpiVerification(): void {
-    // 1. Detect when user returns back to browser window (mobile focus resume)
-    this.upiFocusListener = () => {
-      this.triggerUpiSuccess();
-    };
-    window.addEventListener('focus', this.upiFocusListener);
-
-    // 2. Fallback timeout of 10 seconds for desktop
-    this.upiTimer = setTimeout(() => {
-      this.triggerUpiSuccess();
-    }, 10000);
+  /** Loads Razorpay checkout.js dynamically if not already present */
+  private loadRazorpayScript(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if ((window as any).Razorpay) {
+        resolve();
+        return;
+      }
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error('Failed to load Razorpay SDK'));
+      document.head.appendChild(script);
+    });
   }
 
-  triggerUpiSuccess(): void {
-    if (this.upiFocusListener) {
-      window.removeEventListener('focus', this.upiFocusListener);
-      this.upiFocusListener = null;
-    }
-    if (this.upiTimer) {
-      clearTimeout(this.upiTimer);
-      this.upiTimer = null;
-    }
+  /** Initiates UPI payment through Razorpay Checkout with real verification */
+  initiateRazorpayUpi(): void {
+    const totalAmount = this.cartService.getTotal();
 
-    if (this.showPaymentSuccess || this.isVerifyingUpi) return;
-
-    this.isVerifyingUpi = true;
-    
-    // Simulate banking transaction verification status for 1.5 seconds
-    setTimeout(() => {
-      this.isVerifyingUpi = false;
-      this.showPaymentSuccess = true;
-
-      const dto = this.orderService.buildOrderDto(
-        this.cartService.items,
-        this.buildAddress(),
-        'UPI'
-      );
-      dto.paymentId = this.enteredUtr;
-
-      this.orderService.placeOrder(dto).subscribe({
-        next: () => {
-          this.cartService.clearCart();
-          this.loadOrders();
-          
-          setTimeout(() => {
-            this.showPaymentSuccess = false;
-            this.showPayNowModal = false;
-            this.view = 'history';
-          }, 3000);
-        },
-        error: (err) => {
-          this.showPaymentSuccess = false;
-          alert('Failed to place order: ' + (err.error?.message || 'Server error.'));
-          this.closePayNowModal();
+    // Step 1: Create Razorpay order on the backend
+    this.paymentService.createRazorpayOrder(totalAmount).subscribe({
+      next: async (razorpayOrder) => {
+        try {
+          // Step 2: Load Razorpay SDK dynamically
+          await this.loadRazorpayScript();
+        } catch (e) {
+          this.orderError = 'Failed to load payment gateway. Please try again.';
+          this.loading = false;
+          return;
         }
-      });
-    }, 1500);
+
+        // Step 3: Get Razorpay key from backend
+        this.paymentService.getRazorpayKey().subscribe({
+          next: (keyData) => {
+            const options = {
+              key: keyData.keyId,
+              amount: razorpayOrder.amount,
+              currency: razorpayOrder.currency || 'INR',
+              name: 'Ugam Waters',
+              description: 'Water Order Payment',
+              order_id: razorpayOrder.id,
+              prefill: {
+                contact: '',
+                email: ''
+              },
+              config: {
+                display: {
+                  blocks: {
+                    utib: {
+                      name: 'Pay using UPI',
+                      instruments: [
+                        { method: 'upi' }
+                      ]
+                    }
+                  },
+                  sequence: ['block.utib'],
+                  preferences: { show_default_blocks: false }
+                }
+              },
+              handler: (response: any) => {
+                // Real payment success callback from Razorpay
+                const paymentId = response.razorpay_payment_id;
+                this.enteredTxnId = response.razorpay_order_id || razorpayOrder.id;
+                this.enteredUtr = paymentId;
+
+                // Show success modal
+                this.showPayNowModal = true;
+                this.isCheckoutPay = true;
+                this.showPaymentSuccess = true;
+                this.totalForUpi = totalAmount;
+
+                // Place the order on the backend with verified payment ID
+                const dto = this.orderService.buildOrderDto(
+                  this.cartService.items,
+                  this.buildAddress(),
+                  'UPI'
+                );
+                dto.paymentId = paymentId;
+
+                this.orderService.placeOrder(dto).subscribe({
+                  next: () => {
+                    // Confirm payment on backend
+                    this.paymentService.confirmRazorpayPayment(paymentId).subscribe({
+                      next: () => {},
+                      error: () => {} // Order already placed, notification failure is non-critical
+                    });
+
+                    this.cartService.clearCart();
+                    this.loadOrders();
+                    this.loading = false;
+
+                    setTimeout(() => {
+                      this.showPaymentSuccess = false;
+                      this.showPayNowModal = false;
+                      this.view = 'history';
+                    }, 3000);
+                  },
+                  error: (err) => {
+                    this.showPaymentSuccess = false;
+                    this.showPayNowModal = false;
+                    this.loading = false;
+                    this.orderError = 'Payment received but failed to place order: ' + (err.error?.message || 'Server error.');
+                  }
+                });
+              },
+              modal: {
+                ondismiss: () => {
+                  this.loading = false;
+                  this.orderError = 'Payment was cancelled.';
+                }
+              },
+              theme: {
+                color: '#1a6bbf'
+              }
+            };
+
+            const rzp = new (window as any).Razorpay(options);
+            rzp.on('payment.failed', (response: any) => {
+              this.loading = false;
+              this.orderError = 'Payment failed: ' + (response.error?.description || 'Please try again.');
+            });
+            rzp.open();
+          },
+          error: () => {
+            this.orderError = 'Failed to load payment configuration.';
+            this.loading = false;
+          }
+        });
+      },
+      error: (err) => {
+        this.orderError = 'Failed to create payment order: ' + (err.error?.message || 'Server error.');
+        this.loading = false;
+      }
+    });
   }
 }

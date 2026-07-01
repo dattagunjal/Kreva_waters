@@ -63,14 +63,14 @@ public class PaymentService {
         }
     }
 
-    @Value("${razorpay.key.id:rzp_test_yGzB4Fh5j7z8K9}")
+    @Value("${razorpay.key.id:rzp_test_T7nU9vF626y0VG}")
     private String razorpayKeyId;
 
-    @Value("${razorpay.key.secret:MOCK_SECRET_KEY}")
+    @Value("${razorpay.key.secret:goUxGP1IvVhRbtRi8A04HzNn}")
     private String razorpayKeySecret;
 
     public Map<String, Object> createRazorpayOrder(Double amount) {
-        if (razorpayKeyId == null || razorpayKeyId.contains("PLACEHOLDER") || razorpayKeyId.isBlank() || "rzp_test_yGzB4Fh5j7z8K9".equals(razorpayKeyId)) {
+        if (razorpayKeyId == null || razorpayKeyId.contains("PLACEHOLDER") || razorpayKeyId.isBlank()) {
             log.warn("Razorpay key is not configured or placeholder. Falling back to mock Razorpay order.");
             Map<String, Object> mockResult = new java.util.LinkedHashMap<>();
             mockResult.put("id", "order_mock_" + System.currentTimeMillis());
