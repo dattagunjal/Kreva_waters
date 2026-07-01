@@ -96,11 +96,12 @@
             inputmode="numeric"
             autocomplete="postal-code"
             (input)="onPincodeInput($event)"
+            (blur)="onPincodeBlur()"
           />
           <span class="error" *ngIf="(pincodeCtrl.touched || checkoutForm.submitted) && pincodeCtrl.errors?.['required']">
             Pincode is required.
           </span>
-          <span class="error" *ngIf="pincodeCtrl.value && pincodeCtrl.errors?.['invalidPincode']">
+          <span class="error" *ngIf="pincodeCtrl.touched && pincodeCtrl.value && pincodeCtrl.errors?.['invalidPincode']">
             The entered pincode ({{ pincodeCtrl.value }}) is invalid or does not exist in India.
           </span>
         </div>

@@ -104,6 +104,31 @@ export class OrdersComponent implements OnInit {
     }
   }
 
+  /** Validate pincode when user tabs out of the field */
+  onPincodeBlur(): void {
+    this.pincodeCtrl.markAsTouched();
+    const val = (this.pincodeCtrl.value || '').toString().trim();
+    
+    // If less than 6 digits, the sync validator already marks it invalid
+    if (val.length < 6) return;
+
+    // If exactly 6 digits, call India Post API to verify
+    if (/^[1-9][0-9]{5}$/.test(val)) {
+      this.http.get<any[]>(`https://api.postalpincode.in/pincode/${val}`).subscribe({
+        next: (res) => {
+          if (res && res[0] && res[0].Status === 'Success') {
+            this.pincodeCtrl.setErrors(null);
+          } else {
+            this.pincodeCtrl.setErrors({ invalidPincode: true });
+          }
+        },
+        error: () => {
+          this.pincodeCtrl.setErrors(null);
+        }
+      });
+    }
+  }
+
   /** Assembles the three address fields into a single delivery address string */
   buildAddress(): string {
     const { houseNo, area, pincode } = this.checkoutForm.value;
@@ -344,20 +369,6 @@ export class OrdersComponent implements OnInit {
               prefill: {
                 contact: '',
                 email: ''
-              },
-              config: {
-                display: {
-                  blocks: {
-                    utib: {
-                      name: 'Pay using UPI',
-                      instruments: [
-                        { method: 'upi' }
-                      ]
-                    }
-                  },
-                  sequence: ['block.utib'],
-                  preferences: { show_default_blocks: false }
-                }
               },
               handler: (response: any) => {
                 // Real payment success callback from Razorpay
