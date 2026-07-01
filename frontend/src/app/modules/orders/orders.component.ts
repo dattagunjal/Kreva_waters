@@ -42,6 +42,11 @@ export class OrdersComponent implements OnInit {
   showPayNowModal = false;
   payNowOrder: any = null;
   upiDeepLinkUrl = '';
+  enteredUtr = '';
+  utrError = '';
+  showPaymentSuccess = false;
+  isCheckoutPay = false;
+  enteredTxnId = '';
 
   constructor(
     private fb: FormBuilder,
@@ -127,28 +132,56 @@ export class OrdersComponent implements OnInit {
       );
       this.submitOrder(dto);
     } else if (paymentMethod === 'UPI') {
-      const dto = this.orderService.buildOrderDto(
-        this.cartService.items,
-        this.buildAddress(),
-        'UPI'
-      );
-      dto.paymentId = 'UPI-' + Math.floor(100000000000 + Math.random() * 900000000000);
+      if (this.cartService.items.length === 0) return;
 
-      this.orderService.placeOrder(dto).subscribe({
-        next: (newOrder) => {
-          this.cartService.clearCart();
-          this.orderSuccess = true;
-          this.loading = false;
-          this.loadOrders();
-          
-          setTimeout(() => {
-            this.orderSuccess = false;
-            this.view = 'history';
-            this.openPayNowModal(newOrder);
-          }, 2000);
+      this.isCheckoutPay = true;
+      this.totalForUpi = this.cartService.getTotal();
+      this.enteredTxnId = 'TXN' + Math.floor(1000000000 + Math.random() * 9000000000);
+      this.enteredUtr = Math.floor(100000000000 + Math.random() * 900000000000).toString();
+      this.showPaymentSuccess = false;
+
+      this.paymentService.getBankDetails().subscribe({
+        next: (bank) => {
+          this.bankDetails = bank;
+          const upiUri = `upi://pay?pa=${bank.upiId}&pn=${encodeURIComponent(bank.accountName)}&am=${this.totalForUpi}&cu=INR`;
+          this.upiDeepLinkUrl = upiUri;
+          this.upiQrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(upiUri)}`;
+          this.showPayNowModal = true;
+
+          // Auto-verify payment after 5 seconds simulating bank callback confirmation
+          this.upiTimer = setTimeout(() => {
+            this.showPaymentSuccess = true;
+
+            const dto = this.orderService.buildOrderDto(
+              this.cartService.items,
+              this.buildAddress(),
+              'UPI'
+            );
+            dto.paymentId = this.enteredUtr;
+
+            this.orderService.placeOrder(dto).subscribe({
+              next: () => {
+                this.cartService.clearCart();
+                this.loadOrders();
+                this.loading = false;
+                
+                setTimeout(() => {
+                  this.showPaymentSuccess = false;
+                  this.showPayNowModal = false;
+                  this.view = 'history';
+                }, 3000);
+              },
+              error: (err) => {
+                this.showPaymentSuccess = false;
+                this.loading = false;
+                alert('Failed to place order: ' + (err.error?.message || 'Server error.'));
+                this.closePayNowModal();
+              }
+            });
+          }, 5000);
         },
-        error: (err) => {
-          this.orderError = err.error?.message || 'Failed to place order. Please try again.';
+        error: () => {
+          alert('Failed to load bank payment details. Please try again.');
           this.loading = false;
         }
       });
@@ -291,15 +324,27 @@ export class OrdersComponent implements OnInit {
   }
 
   isUpiOrder(order: any): boolean {
-    return order.paymentId && order.paymentId.startsWith('UPI-');
+    return order.paymentId && (order.paymentId.startsWith('UPI-') || /^\d{12}$/.test(order.paymentId));
   }
 
   isMobileDevice(): boolean {
     return typeof window !== 'undefined' && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
   }
 
+  onUtrInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.enteredUtr = input.value.replace(/\D/g, ''); // strip non-digits
+    this.utrError = '';
+  }
+
   openPayNowModal(order: any): void {
     this.payNowOrder = order;
+    this.totalForUpi = order.totalAmount;
+    this.isCheckoutPay = false;
+    this.enteredUtr = '';
+    this.utrError = '';
+    this.showPaymentSuccess = false;
+
     this.paymentService.getBankDetails().subscribe({
       next: (bank) => {
         this.bankDetails = bank;
@@ -317,5 +362,45 @@ export class OrdersComponent implements OnInit {
   closePayNowModal(): void {
     this.showPayNowModal = false;
     this.payNowOrder = null;
+    this.enteredUtr = '';
+    this.utrError = '';
+    this.showPaymentSuccess = false;
+  }
+
+  verifyAndSubmitOrder(): void {
+    if (!this.enteredUtr || this.enteredUtr.length !== 12) {
+      this.utrError = 'Please enter a valid 12-digit UTR/Ref number.';
+      return;
+    }
+
+    this.loading = true;
+    this.showPaymentSuccess = true;
+
+    const dto = this.orderService.buildOrderDto(
+      this.cartService.items,
+      this.buildAddress(),
+      'UPI'
+    );
+    dto.paymentId = this.enteredUtr;
+
+    this.orderService.placeOrder(dto).subscribe({
+      next: (newOrder) => {
+        this.cartService.clearCart();
+        this.loadOrders();
+        
+        setTimeout(() => {
+          this.showPaymentSuccess = false;
+          this.showPayNowModal = false;
+          this.enteredUtr = '';
+          this.view = 'history';
+          this.loading = false;
+        }, 3000);
+      },
+      error: (err) => {
+        this.showPaymentSuccess = false;
+        this.utrError = err.error?.message || 'Failed to place order. Please check UTR and try again.';
+        this.loading = false;
+      }
+    });
   }
 }
