@@ -97,11 +97,11 @@
             autocomplete="postal-code"
             (input)="onPincodeInput($event)"
           />
-          <span class="error" *ngIf="pincodeCtrl.touched && pincodeCtrl.errors?.['required']">
+          <span class="error" *ngIf="(pincodeCtrl.touched || checkoutForm.submitted) && pincodeCtrl.errors?.['required']">
             Pincode is required.
           </span>
-          <span class="error" *ngIf="pincodeCtrl.touched && pincodeCtrl.errors?.['invalidPincode']">
-            Enter a valid 6-digit Indian pincode.
+          <span class="error" *ngIf="pincodeCtrl.value && pincodeCtrl.errors?.['invalidPincode']">
+            This pincode is invalid or not available for delivery.
           </span>
         </div>
 
@@ -224,16 +224,16 @@
       </div>
 
       <!-- Mobile Deep Link Button -->
-      <div *ngIf="isMobileDevice()" style="margin-bottom: 1.5rem;">
+      <div *ngIf="isMobileDevice() && !isVerifyingUpi" style="margin-bottom: 1.5rem;">
         <a [href]="upiDeepLinkUrl" class="btn-primary" style="display:inline-flex; align-items:center; gap:8px; text-decoration:none; padding:0.75rem 2rem; border-radius:8px; font-weight:600; font-size:0.95rem; box-shadow:0 4px 6px rgba(26,107,191,0.2);">
           📱 Pay via UPI App
         </a>
       </div>
 
-      <!-- Automatic Verification Status (Only during checkout) -->
-      <div *ngIf="isCheckoutPay" style="display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:1.5rem; color:var(--primary); font-weight:600; font-size:0.95rem;">
-        <span class="spinner-small" style="display:inline-block; width:16px; height:16px; border:2px solid rgba(26,107,191,0.2); border-top-color:var(--primary); border-radius:50%; animation:loading-spin 0.8s linear infinite;"></span>
-        Waiting for payment confirmation...
+      <!-- Live Verification Loader -->
+      <div *ngIf="isVerifyingUpi" style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; margin-bottom:1.5rem; color:var(--primary); font-weight:600; font-size:0.95rem;">
+        <span class="spinner-small" style="display:inline-block; width:24px; height:24px; border:3px solid rgba(26,107,191,0.2); border-top-color:var(--primary); border-radius:50%; animation:loading-spin 0.8s linear infinite;"></span>
+        <span>Verifying your transaction with Axis bank...</span>
       </div>
 
       <!-- Bank / Account Details -->
@@ -247,8 +247,11 @@
       </div>
 
       <!-- Actions -->
-      <div style="display:flex; justify-content:center;">
-        <button class="btn-secondary" style="border:1px solid #cbd5e1; background:white; color:var(--text); padding:0.75rem 2rem; border-radius:8px; cursor:pointer; font-weight:600;" (click)="closePayNowModal()">
+      <div style="display:flex; gap:12px; justify-content:center;">
+        <button *ngIf="isCheckoutPay && !isVerifyingUpi" class="btn-primary" style="padding:0.75rem 2rem; border-radius:8px; font-weight:600;" (click)="confirmUpiPaymentClick()">
+          Confirm Payment
+        </button>
+        <button *ngIf="!isVerifyingUpi" class="btn-secondary" style="border:1px solid #cbd5e1; background:white; color:var(--text); padding:0.75rem 2rem; border-radius:8px; cursor:pointer; font-weight:600;" (click)="closePayNowModal()">
           {{ isCheckoutPay ? 'Cancel' : 'Close' }}
         </button>
       </div>
