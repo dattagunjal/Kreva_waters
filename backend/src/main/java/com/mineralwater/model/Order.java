@@ -42,12 +42,14 @@ public class Order {
     @Column(nullable = false)
     private String address;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     private Status status = Status.PENDING;
 
     @Column
     private String paymentId;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     private PaymentStatus paymentStatus = PaymentStatus.PENDING;
 
