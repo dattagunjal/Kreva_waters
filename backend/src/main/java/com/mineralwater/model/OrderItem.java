@@ -39,7 +39,7 @@ public class OrderItem {
 
     private String businessName;
 
-    @Column(columnDefinition = "LONGTEXT")
+    @Column(columnDefinition = "TEXT")
     private String logoUrl;
 
     private String tagline;
