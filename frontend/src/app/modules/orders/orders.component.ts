@@ -49,6 +49,8 @@ export class OrdersComponent implements OnInit {
   enteredTxnId = '';
   isVerifyingUpi = false;
   upiFocusListener: any = null;
+  pincodeCache = new Map<string, boolean>();
+  private inFlightPincodes = new Set<string>();
 
   constructor(
     private fb: FormBuilder,
@@ -88,19 +90,7 @@ export class OrdersComponent implements OnInit {
     this.pincodeCtrl.setValue(digitsOnly);
 
     if (digitsOnly.length === 6) {
-      this.http.get<any[]>(`https://api.postalpincode.in/pincode/${digitsOnly}`).subscribe({
-        next: (res) => {
-          if (res && res[0] && res[0].Status === 'Success') {
-            this.pincodeCtrl.setErrors(null);
-          } else {
-            this.pincodeCtrl.setErrors({ invalidPincode: true });
-          }
-        },
-        error: () => {
-          // Fallback if API is down
-          this.pincodeCtrl.setErrors(null);
-        }
-      });
+      this.validatePincodeWithApi(digitsOnly);
     }
   }
 
@@ -108,25 +98,60 @@ export class OrdersComponent implements OnInit {
   onPincodeBlur(): void {
     this.pincodeCtrl.markAsTouched();
     const val = (this.pincodeCtrl.value || '').toString().trim();
-    
-    // If less than 6 digits, the sync validator already marks it invalid
-    if (val.length < 6) return;
+    if (val.length === 6) {
+      this.validatePincodeWithApi(val);
+    }
+  }
 
-    // If exactly 6 digits, call India Post API to verify
-    if (/^[1-9][0-9]{5}$/.test(val)) {
-      this.http.get<any[]>(`https://api.postalpincode.in/pincode/${val}`).subscribe({
-        next: (res) => {
-          if (res && res[0] && res[0].Status === 'Success') {
+  /** Validates pincode against cache, avoids duplicate requests, and updates form errors safely */
+  private validatePincodeWithApi(pincode: string): void {
+    const val = pincode.trim();
+    if (val.length !== 6 || !/^[1-9][0-9]{5}$/.test(val)) {
+      this.pincodeCtrl.setErrors({ invalidPincode: true });
+      return;
+    }
+
+    // 1. Check local cache first
+    if (this.pincodeCache.has(val)) {
+      const isValid = this.pincodeCache.get(val);
+      if (isValid) {
+        this.pincodeCtrl.setErrors(null);
+      } else {
+        this.pincodeCtrl.setErrors({ invalidPincode: true });
+      }
+      return;
+    }
+
+    // 2. Prevent duplicate concurrent requests for the same pincode
+    if (this.inFlightPincodes.has(val)) {
+      return;
+    }
+
+    this.inFlightPincodes.add(val);
+    this.http.get<any[]>(`https://api.postalpincode.in/pincode/${val}`).subscribe({
+      next: (res) => {
+        this.inFlightPincodes.delete(val);
+        const isValid = !!(res && res[0] && res[0].Status === 'Success');
+        this.pincodeCache.set(val, isValid);
+        
+        // Only set errors if the user hasn't typed a different pincode in the meantime
+        if (this.pincodeCtrl.value === val) {
+          if (isValid) {
             this.pincodeCtrl.setErrors(null);
           } else {
             this.pincodeCtrl.setErrors({ invalidPincode: true });
           }
-        },
-        error: () => {
+        }
+      },
+      error: () => {
+        this.inFlightPincodes.delete(val);
+        // Fallback: assume valid if API is down
+        this.pincodeCache.set(val, true);
+        if (this.pincodeCtrl.value === val) {
           this.pincodeCtrl.setErrors(null);
         }
-      });
-    }
+      }
+    });
   }
 
   /** Assembles the three address fields into a single delivery address string */
