@@ -31,16 +31,27 @@ public class MineralWaterApplication {
         return args -> {
             try (java.sql.Connection conn = dataSource.getConnection();
                  java.sql.Statement stmt = conn.createStatement()) {
+                String dbName = conn.getMetaData().getDatabaseProductName();
+                boolean isPg = dbName != null && dbName.toLowerCase().contains("postgresql");
+
                 // Ensure email and mobile_number columns are nullable in the database
                 try {
-                    stmt.execute("ALTER TABLE users MODIFY COLUMN email VARCHAR(255) NULL");
+                    if (isPg) {
+                        stmt.execute("ALTER TABLE users ALTER COLUMN email DROP NOT NULL");
+                    } else {
+                        stmt.execute("ALTER TABLE users MODIFY COLUMN email VARCHAR(255) NULL");
+                    }
                 } catch (Exception e) {
-                    System.err.println("Could not alter email column (MySQL syntax ignored on PostgreSQL): " + e.getMessage());
+                    System.err.println("Could not alter email column: " + e.getMessage());
                 }
                 try {
-                    stmt.execute("ALTER TABLE users MODIFY COLUMN mobile_number VARCHAR(255) NULL");
+                    if (isPg) {
+                        stmt.execute("ALTER TABLE users ALTER COLUMN mobile_number DROP NOT NULL");
+                    } else {
+                        stmt.execute("ALTER TABLE users MODIFY COLUMN mobile_number VARCHAR(255) NULL");
+                    }
                 } catch (Exception e) {
-                    System.err.println("Could not alter mobile_number column (MySQL syntax ignored on PostgreSQL): " + e.getMessage());
+                    System.err.println("Could not alter mobile_number column: " + e.getMessage());
                 }
             } catch (Exception e) {
                 System.err.println("Database initialization error: " + e.getMessage());
