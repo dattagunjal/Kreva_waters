@@ -22,7 +22,12 @@ public class MineralWaterApplication {
     }
 
     @Bean
-    public org.springframework.boot.CommandLineRunner databaseInitializer(javax.sql.DataSource dataSource) {
+    public org.springframework.boot.CommandLineRunner databaseInitializer(
+            javax.sql.DataSource dataSource,
+            com.mineralwater.repository.CategoryRepository categoryRepository,
+            com.mineralwater.repository.ProductRepository productRepository,
+            com.mineralwater.repository.UserRepository userRepository,
+            org.springframework.security.crypto.password.PasswordEncoder passwordEncoder) {
         return args -> {
             try (java.sql.Connection conn = dataSource.getConnection();
                  java.sql.Statement stmt = conn.createStatement()) {
@@ -30,15 +35,73 @@ public class MineralWaterApplication {
                 try {
                     stmt.execute("ALTER TABLE users MODIFY COLUMN email VARCHAR(255) NULL");
                 } catch (Exception e) {
-                    System.err.println("Could not alter email column: " + e.getMessage());
+                    System.err.println("Could not alter email column (MySQL syntax ignored on PostgreSQL): " + e.getMessage());
                 }
                 try {
                     stmt.execute("ALTER TABLE users MODIFY COLUMN mobile_number VARCHAR(255) NULL");
                 } catch (Exception e) {
-                    System.err.println("Could not alter mobile_number column: " + e.getMessage());
+                    System.err.println("Could not alter mobile_number column (MySQL syntax ignored on PostgreSQL): " + e.getMessage());
                 }
             } catch (Exception e) {
                 System.err.println("Database initialization error: " + e.getMessage());
+            }
+
+            // Seed default category if none exists
+            if (categoryRepository.count() == 0) {
+                com.mineralwater.model.Category cat = com.mineralwater.model.Category.builder()
+                        .name("Mineral Water")
+                        .build();
+                cat = categoryRepository.save(cat);
+
+                // Seed default products
+                if (productRepository.count() == 0) {
+                    productRepository.save(com.mineralwater.model.Product.builder()
+                            .name("Ugam Waters 200ml")
+                            .price(5.0)
+                            .stock(1000)
+                            .description("Refreshing premium mineral water in a 200ml bottle.")
+                            .category(cat)
+                            .imageUrl("assets/images/bottle_200ml.png")
+                            .build());
+
+                    productRepository.save(com.mineralwater.model.Product.builder()
+                            .name("Ugam Waters 500ml")
+                            .price(10.0)
+                            .stock(1000)
+                            .description("Refreshing premium mineral water in a 500ml bottle.")
+                            .category(cat)
+                            .imageUrl("assets/images/bottle_500ml.png")
+                            .build());
+
+                    productRepository.save(com.mineralwater.model.Product.builder()
+                            .name("Ugam Waters 1 Litre")
+                            .price(20.0)
+                            .stock(1000)
+                            .description("Refreshing premium mineral water in a 1 Litre bottle.")
+                            .category(cat)
+                            .imageUrl("assets/images/bottle_1l.png")
+                            .build());
+
+                    productRepository.save(com.mineralwater.model.Product.builder()
+                            .name("Ugam Waters 20 Litre Can")
+                            .price(80.0)
+                            .stock(1000)
+                            .description("Refreshing premium mineral water in a 20 Litre reusable can.")
+                            .category(cat)
+                            .imageUrl("assets/images/can_20l.png")
+                            .build());
+                }
+            }
+
+            // Seed default admin user if none exists
+            if (!userRepository.existsByEmail("admin@ugamwaters.in")) {
+                com.mineralwater.model.User admin = com.mineralwater.model.User.builder()
+                        .name("Admin")
+                        .email("admin@ugamwaters.in")
+                        .password(passwordEncoder.encode("admin123"))
+                        .role(com.mineralwater.model.User.Role.ADMIN)
+                        .build();
+                userRepository.save(admin);
             }
         };
     }
