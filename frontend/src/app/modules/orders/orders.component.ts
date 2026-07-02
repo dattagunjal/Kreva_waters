@@ -168,10 +168,15 @@ export class OrdersComponent implements OnInit {
   }
 
   placeOrder(): void {
+    if (this.loading) return;
+
     if (this.checkoutForm.invalid) {
       this.checkoutForm.markAllAsTouched();
       return;
     }
+
+    this.loading = true;
+    this.orderError = '';
 
     const paymentMethod = this.checkoutForm.value.paymentMethod;
     if (paymentMethod === 'COD') {
@@ -182,9 +187,10 @@ export class OrdersComponent implements OnInit {
       );
       this.submitOrder(dto);
     } else if (paymentMethod === 'UPI') {
-      if (this.cartService.items.length === 0) return;
-      this.loading = true;
-      this.orderError = '';
+      if (this.cartService.items.length === 0) {
+        this.loading = false;
+        return;
+      }
       this.initiateRazorpayUpi();
     } else {
       this.initiateOnlinePayment();

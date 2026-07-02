@@ -98,6 +98,7 @@ public class OrderService {
                 .user(user)
                 .address(dto.getAddress())
                 .status(Order.Status.PENDING)
+                .paymentMethod(dto.getPaymentMethod())
                 .build();
 
         List<OrderItem> items = dto.getItems().stream().map(itemDto -> {
