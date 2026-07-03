@@ -51,6 +51,7 @@ com\mineralwater\service\AuthService.class
 com\mineralwater\model\Order$Status.class
 com\mineralwater\model\User$Role.class
 com\mineralwater\service\ProductService.class
+com\mineralwater\controller\HomeController.class
 com\mineralwater\model\ServiceablePincode.class
 com\mineralwater\controller\ContactController.class
 com\mineralwater\model\OtpEntry$Purpose.class

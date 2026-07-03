@@ -50,6 +50,7 @@ public class SecurityConfig {
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/products", "/api/products/**").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/categories", "/api/categories/**").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/pincodes/check/**").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/").permitAll()
                 .requestMatchers("/api/products", "/api/products/**").hasRole("ADMIN")
                 .requestMatchers("/api/categories", "/api/categories/**").hasRole("ADMIN")
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
