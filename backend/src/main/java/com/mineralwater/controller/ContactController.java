@@ -97,12 +97,12 @@ public class ContactController {
             org.springframework.http.ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
 
             if (response.getStatusCode().is2xxSuccessful()) {
-                log.info("âœ… Contact enquiry email notification successfully sent to: {}", contactNotificationEmail);
+                log.info("✅ Contact enquiry email notification successfully sent to: {}", contactNotificationEmail);
             } else {
-                log.error("âŒ Contact enquiry email notification failed. Response: {}", response.getBody());
+                log.error("❌ Contact enquiry email notification failed. Response: {}", response.getBody());
             }
         } catch (Exception e) {
-            log.error("âŒ Error sending contact enquiry email notification", e);
+            log.error("❌ Error sending contact enquiry email notification", e);
         }
     }
 }

@@ -14,19 +14,19 @@ import java.util.regex.Pattern;
 /**
  * Generates, delivers, and verifies 6-digit OTPs.
  *
- * â”€â”€ MOCK MODE (otp.mock.enabled=true, for local dev) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+ * ── MOCK MODE (otp.mock.enabled=true, for local dev) ─────────────────────────
  *   - OTP is printed to the Spring console log.
  *   - The generated code is also returned to the caller so the controller can
  *     set it in the response header X-Dev-OTP (makes Postman/frontend testing easy).
  *   - No real SMS or email is sent.
  *
- * â”€â”€ PRODUCTION MODE (otp.mock.enabled=false) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
- *   - For MOBILE numbers  â†’ integrate Fast2SMS (already used for order alerts).
+ * ── PRODUCTION MODE (otp.mock.enabled=false) ──────────────────────────────────
+ *   - For MOBILE numbers  → integrate Fast2SMS (already used for order alerts).
  *     Replace the sendSmsOtp() stub with the Fast2SMS bulk/transactional call.
- *   - For EMAIL addresses â†’ integrate JavaMailSender (Spring Mail) or any
+ *   - For EMAIL addresses → integrate JavaMailSender (Spring Mail) or any
  *     transactional email provider (SendGrid, AWS SES, Mailgun).
  *     Replace the sendEmailOtp() stub with your chosen provider.
- * â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+ * ─────────────────────────────────────────────────────────────────────────────
  */
 @Service
 @RequiredArgsConstructor
@@ -55,13 +55,13 @@ public class OtpService {
     @Value("${brevo.sender.email:info@Kreva.in}")
     private String brevoSenderEmail;
 
-    // â”€â”€ public API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── public API ─────────────────────────────────────────────────────────────
 
     /**
      * Generates a new OTP for the given loginId and purpose, persists it, and
      * delivers it (mock or real).
      *
-     * @return the generated code â€” always returned so the controller can expose
+     * @return the generated code — always returned so the controller can expose
      *         it in X-Dev-OTP when mockEnabled=true; in production the controller
      *         MUST NOT include it in the response.
      */
@@ -82,14 +82,14 @@ public class OtpService {
         otpRepository.save(entry);
 
         if (mockEnabled) {
-            // â”€â”€ MOCK: print to console and return code â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-            log.info("â•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•—");
-            log.info("â•‘  [MOCK OTP] loginId : {}  â•‘", loginId);
-            log.info("â•‘  [MOCK OTP] purpose : {}        â•‘", purpose);
-            log.info("â•‘  [MOCK OTP] code    : {}              â•‘", code);
-            log.info("â•šâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•");
+            // ── MOCK: print to console and return code ──────────────────────
+            log.info("╔══════════════════════════════════════╗");
+            log.info("║  [MOCK OTP] loginId : {}  ║", loginId);
+            log.info("║  [MOCK OTP] purpose : {}        ║", purpose);
+            log.info("║  [MOCK OTP] code    : {}              ║", code);
+            log.info("╚══════════════════════════════════════╝");
         } else {
-            // â”€â”€ PRODUCTION: dispatch based on loginId type â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+            // ── PRODUCTION: dispatch based on loginId type ──────────────────
             if (EMAIL_PATTERN.matcher(loginId).matches()) {
                 sendEmailOtp(loginId, code);
             } else {
@@ -122,10 +122,10 @@ public class OtpService {
         otpRepository.save(entry);
     }
 
-    // â”€â”€ private helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── private helpers ────────────────────────────────────────────────────────
 
     private String generateCode() {
-        // Guaranteed 6-digit code (100000â€“999999)
+        // Guaranteed 6-digit code (100000–999999)
         return String.valueOf(100000 + RANDOM.nextInt(900000));
     }
 
@@ -156,13 +156,13 @@ public class OtpService {
             org.springframework.http.ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
 
             if (response.getStatusCode().is2xxSuccessful()) {
-                log.info("âœ… SMS OTP successfully sent to: {}", mobile);
+                log.info("✅ SMS OTP successfully sent to: {}", mobile);
             } else {
-                log.error("âŒ SMS OTP failed for: {}. Response: {}", mobile, response.getBody());
+                log.error("❌ SMS OTP failed for: {}. Response: {}", mobile, response.getBody());
                 throw new RuntimeException("SMS gateway error: " + response.getBody());
             }
         } catch (Exception e) {
-            log.error("âŒ Error sending SMS OTP to: {}", mobile, e);
+            log.error("❌ Error sending SMS OTP to: {}", mobile, e);
             throw new RuntimeException("Failed to send SMS OTP: " + e.getMessage());
         }
     }
@@ -191,13 +191,13 @@ public class OtpService {
             org.springframework.http.ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
 
             if (response.getStatusCode().is2xxSuccessful()) {
-                log.info("âœ… Brevo Email OTP successfully sent to: {}", email);
+                log.info("✅ Brevo Email OTP successfully sent to: {}", email);
             } else {
-                log.error("âŒ Brevo Email OTP failed for: {}. Response: {}", email, response.getBody());
+                log.error("❌ Brevo Email OTP failed for: {}. Response: {}", email, response.getBody());
                 throw new RuntimeException("Brevo API error: " + response.getBody());
             }
         } catch (Exception e) {
-            log.error("âŒ Error sending Brevo Email OTP to: {}", email, e);
+            log.error("❌ Error sending Brevo Email OTP to: {}", email, e);
             throw new RuntimeException("Failed to send Email OTP: " + e.getMessage());
         }
     }

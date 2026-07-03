@@ -3,7 +3,7 @@
 
     <!-- Header -->
     <div class="auth-header">
-      <span class="auth-logo">ðŸ’§</span>
+      <span class="auth-logo">💧</span>
       <h2>Kreva</h2>
       <p>Create your account</p>
     </div>
@@ -12,7 +12,7 @@
 
     <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
 
-      <!-- â”€â”€ Full Name â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+      <!-- ── Full Name ─────────────────────────────────────────────── -->
       <div class="form-group">
         <label for="reg-name">Full Name</label>
         <input id="reg-name" type="text" formControlName="name"
@@ -21,7 +21,7 @@
         <span class="error" *ngIf="nameCtrl.touched && nameCtrl.errors?.['minlength']">At least 2 characters.</span>
       </div>
 
-      <!-- â”€â”€ Email Address â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+      <!-- ── Email Address ────────────────────────────────────────── -->
       <div class="form-group">
         <label for="reg-email">Email Address</label>
         <input id="reg-email" type="email" formControlName="email"
@@ -31,7 +31,7 @@
         </span>
       </div>
 
-      <!-- â”€â”€ Mobile Number â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+      <!-- ── Mobile Number ────────────────────────────────────────── -->
       <div class="form-group">
         <label for="reg-mobile">Mobile Number</label>
         <input id="reg-mobile" type="text" formControlName="mobileNumber"
@@ -45,13 +45,13 @@
         </span>
       </div>
 
-      <!-- â”€â”€ OTP Verification Channel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+      <!-- ── OTP Verification Channel ─────────────────────────────── -->
       <div class="form-group">
         <label for="reg-otpChannel">Send OTP To</label>
         <div class="input-with-action">
           <select id="reg-otpChannel" formControlName="otpChannel" style="padding: 10px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); background: var(--bg-input); color: var(--text-primary); flex: 1;">
-            <option value="email">âœ‰ï¸ Email Address</option>
-            <option value="mobile">ðŸ“± Mobile Number</option>
+            <option value="email">✉️ Email Address</option>
+            <option value="mobile">📱 Mobile Number</option>
           </select>
           <button type="button" class="btn-otp-send"
                   (click)="sendOtp()"
@@ -59,7 +59,7 @@
             <span *ngIf="!otpLoading">
               {{ otpSent && otpCountdown > 0 ? 'Resend in ' + otpCountdown + 's' : (otpSent ? 'Resend OTP' : 'Send OTP') }}
             </span>
-            <span *ngIf="otpLoading" class="spinner-inline">â³</span>
+            <span *ngIf="otpLoading" class="spinner-inline">⏳</span>
           </button>
         </div>
         <span class="error" *ngIf="registerForm.touched && registerForm.errors?.['emailVerificationRequired']">
@@ -73,12 +73,12 @@
 
         <!-- Dev-only OTP hint box -->
         <div class="dev-otp-box" *ngIf="devOtp">
-          ðŸ›  <strong>Dev mode OTP:</strong> <span class="dev-otp-code">{{ devOtp }}</span>
+          🛠 <strong>Dev mode OTP:</strong> <span class="dev-otp-code">{{ devOtp }}</span>
           <span class="dev-otp-note">(Remove this in production)</span>
         </div>
       </div>
 
-      <!-- â”€â”€ OTP Input (shown after Send OTP) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+      <!-- ── OTP Input (shown after Send OTP) ─────────────────────── -->
       <div class="form-group otp-group" *ngIf="otpSent">
         <label for="reg-otp">Enter OTP</label>
         <input id="reg-otp" type="text" formControlName="otp"
@@ -90,7 +90,7 @@
         </span>
       </div>
 
-      <!-- â”€â”€ Password â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+      <!-- ── Password ──────────────────────────────────────────────── -->
       <div class="form-group">
         <label for="reg-password">Password</label>
         <div class="password-wrapper">
@@ -100,7 +100,7 @@
                  autocomplete="new-password"/>
           <button type="button" class="btn-eye" (click)="showPassword = !showPassword"
                   [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'">
-            {{ showPassword ? 'ðŸ™ˆ' : 'ðŸ‘ï¸' }}
+            {{ showPassword ? '🙈' : '👁️' }}
           </button>
         </div>
 
@@ -117,26 +117,26 @@
         <!-- Criteria checklist -->
         <ul class="pw-checklist" *ngIf="passwordCtrl.touched || pwVal.length > 0">
           <li [class.met]="pwMinLen">
-            <span class="check-icon">{{ pwMinLen ? 'âœ…' : 'â—‹' }}</span> At least 8 characters
+            <span class="check-icon">{{ pwMinLen ? '✅' : '○' }}</span> At least 8 characters
           </li>
           <li [class.met]="pwUppercase">
-            <span class="check-icon">{{ pwUppercase ? 'âœ…' : 'â—‹' }}</span> One uppercase letter
+            <span class="check-icon">{{ pwUppercase ? '✅' : '○' }}</span> One uppercase letter
           </li>
           <li [class.met]="pwLowercase">
-            <span class="check-icon">{{ pwLowercase ? 'âœ…' : 'â—‹' }}</span> One lowercase letter
+            <span class="check-icon">{{ pwLowercase ? '✅' : '○' }}</span> One lowercase letter
           </li>
           <li [class.met]="pwNumber">
-            <span class="check-icon">{{ pwNumber ? 'âœ…' : 'â—‹' }}</span> One number
+            <span class="check-icon">{{ pwNumber ? '✅' : '○' }}</span> One number
           </li>
           <li [class.met]="pwSpecial">
-            <span class="check-icon">{{ pwSpecial ? 'âœ…' : 'â—‹' }}</span> One special character (!&#64;#$â€¦)
+            <span class="check-icon">{{ pwSpecial ? '✅' : '○' }}</span> One special character (!&#64;#$…)
           </li>
         </ul>
       </div>
 
-      <!-- â”€â”€ Submit â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+      <!-- ── Submit ─────────────────────────────────────────────────── -->
       <button type="submit" class="btn-primary" [disabled]="loading || !otpSent">
-        {{ loading ? 'Creating accountâ€¦' : 'Create Account' }}
+        {{ loading ? 'Creating account…' : 'Create Account' }}
       </button>
       <p class="submit-hint" *ngIf="!otpSent">You must send and verify an OTP to register.</p>
     </form>

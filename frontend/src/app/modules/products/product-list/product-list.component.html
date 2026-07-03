@@ -1,5 +1,5 @@
 <div class="products-container">
-  <h2 class="page-title">ðŸ’§ Kreva Products</h2><p class="company-intro">Premium packaged drinking water available in 200ml, 500ml and 1L bottles. Product details are loaded from the database.</p>
+  <h2 class="page-title">💧 Kreva Products</h2><p class="company-intro">Premium packaged drinking water available in 200ml, 500ml and 1L bottles. Product details are loaded from the database.</p>
 
   <div class="loading" *ngIf="loading">Loading products...</div>
 
@@ -10,7 +10,7 @@
         <h3>{{ product.name }}</h3>
         <p>{{ product.description }}</p>
         <div class="product-footer">
-          <span class="price">â‚¹{{ product.price }}</span>
+          <span class="price">₹{{ product.price }}</span>
           <span class="stock" [class.out]="product.stock === 0">
             {{ product.stock > 0 ? 'In Stock' : 'Out of Stock' }}
           </span>
@@ -21,14 +21,14 @@
             [disabled]="product.stock === 0"
             (click)="addToCart(product)"
             style="flex: 1;">
-            {{ addedToCart[product.id!] ? 'âœ“ Added!' : 'Add to Cart' }}
+            {{ addedToCart[product.id!] ? '✓ Added!' : 'Add to Cart' }}
           </button>
           <button
             class="btn-secondary"
             [disabled]="product.stock === 0"
             (click)="openCustomizer(product)"
             style="padding: 10px 16px; border-radius: var(--radius-sm); font-size: 0.92rem; font-weight: 600;">
-            ðŸŽ¨ Customize
+            🎨 Customize
           </button>
         </div>
       </div>
@@ -41,7 +41,7 @@
       
       <!-- Left side: Customization Form -->
       <div class="customizer-form-section">
-        <h3 style="font-size:1.3rem; font-weight:700; margin-bottom:12px; color:var(--primary);">ðŸŽ¨ Customize Water Bottle</h3>
+        <h3 style="font-size:1.3rem; font-weight:700; margin-bottom:12px; color:var(--primary);">🎨 Customize Water Bottle</h3>
         <p style="font-size:0.82rem; color:var(--text-muted); margin-bottom:16px;">Personalize this bottle with your branding details. Business name is required.</p>
         
         <form [formGroup]="customizerForm" (ngSubmit)="addCustomizedToCart()">
@@ -93,7 +93,7 @@
 
       <!-- Right side: Live Customization Preview -->
       <div class="customizer-preview-section" style="display:flex; flex-direction:column; align-items:center; justify-content:center; background:#f0f7ff; border:1px solid var(--border); border-radius:12px; padding:16px; position:relative;">
-        <h4 style="font-weight:700; margin-bottom:12px; color:var(--primary); font-size:0.95rem;">ðŸ“± Live Preview</h4>
+        <h4 style="font-weight:700; margin-bottom:12px; color:var(--primary); font-size:0.95rem;">📱 Live Preview</h4>
         
         <!-- Interactive Stylized Water Bottle Graphic -->
         <div class="preview-bottle-container" style="width: 140px; height: 320px; border: 3px solid #cbd5e1; border-radius: 20px 20px 14px 14px; position: relative; background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%); overflow: hidden; box-shadow: 0 8px 24px rgba(26,107,191,0.15);">
@@ -105,7 +105,7 @@
           <!-- Bottle Label (Customized Area) -->
           <div class="bottle-label-area" style="position: absolute; top: 100px; left: 0; right: 0; height: 110px; background: linear-gradient(90deg, #1e40af 0%, #3b82f6 50%, #1e40af 100%); color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 6px; text-align: center; box-shadow: inset 0 2px 6px rgba(0,0,0,0.3); border-top: 2px solid #60a5fa; border-bottom: 2px solid #60a5fa; transition: all 0.3s ease;">
             <!-- Water drop icon -->
-            <span style="font-size:1rem; margin-bottom:2px;">ðŸ’§</span>
+            <span style="font-size:1rem; margin-bottom:2px;">💧</span>
             <!-- Logo overlay -->
             <img *ngIf="logoBase64" [src]="logoBase64" alt="Logo preview" style="width: 32px; height: 32px; object-fit: contain; background: white; border-radius: 4px; padding: 2px; margin-bottom: 4px; border: 1px solid #fff;" />
             <!-- Business Name overlay -->

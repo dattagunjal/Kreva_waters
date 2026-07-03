@@ -114,7 +114,7 @@ public class PdfExportService {
                 .setBorder(null)
                 .setPadding(20);
 
-        cell.add(new Paragraph("ðŸ’§ Kreva")
+        cell.add(new Paragraph("💧 Kreva")
                 .setFontColor(ColorConstants.WHITE)
                 .setFontSize(11)
                 .setMarginBottom(4));
@@ -285,7 +285,7 @@ public class PdfExportService {
     private void addYearlyComparisonTable(Document doc, Map<String, Object> yearlyData) {
         if (yearlyData == null) return;
 
-        doc.add(new Paragraph("Year Overview â€” " + yearlyData.get("year"))
+        doc.add(new Paragraph("Year Overview — " + yearlyData.get("year"))
                 .setBold().setFontSize(13)
                 .setFontColor(new DeviceRgb(30, 41, 59)).setMarginBottom(4));
 
@@ -316,9 +316,9 @@ public class PdfExportService {
 
     private void addFooter(Document doc) {
         doc.add(new Paragraph("\n"));
-        doc.add(new Paragraph("â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€")
+        doc.add(new Paragraph("─────────────────────────────────────────────────────────")
                 .setFontColor(BORDER).setFontSize(8).setTextAlignment(TextAlignment.CENTER));
-        doc.add(new Paragraph("Kreva â€” Kreva.in  |  Confidential Sales Report")
+        doc.add(new Paragraph("Kreva — Kreva.in  |  Confidential Sales Report")
                 .setFontSize(8).setFontColor(MUTED).setTextAlignment(TextAlignment.CENTER));
     }
 
@@ -459,13 +459,13 @@ public class PdfExportService {
                     pDetails.add(new Text("\nCustomization: " + item.getBusinessName()).setFontSize(8).setFontColor(MUTED));
                 }
                 itemsTable.addCell(new Cell().add(pDetails).setPadding(6));
-                itemsTable.addCell(new Cell().add(new Paragraph("â‚¹" + item.getPrice()).setFontSize(9).setTextAlignment(TextAlignment.RIGHT)).setPadding(6));
+                itemsTable.addCell(new Cell().add(new Paragraph("₹" + item.getPrice()).setFontSize(9).setTextAlignment(TextAlignment.RIGHT)).setPadding(6));
                 itemsTable.addCell(new Cell().add(new Paragraph(item.getQuantity().toString()).setFontSize(9).setTextAlignment(TextAlignment.RIGHT)).setPadding(6));
-                itemsTable.addCell(new Cell().add(new Paragraph("â‚¹" + (item.getPrice() * item.getQuantity())).setFontSize(9).setTextAlignment(TextAlignment.RIGHT)).setPadding(6));
+                itemsTable.addCell(new Cell().add(new Paragraph("₹" + (item.getPrice() * item.getQuantity())).setFontSize(9).setTextAlignment(TextAlignment.RIGHT)).setPadding(6));
             }
 
             itemsTable.addCell(new Cell(1, 3).add(new Paragraph("Grand Total").setBold().setTextAlignment(TextAlignment.RIGHT)).setPadding(6).setBorder(com.itextpdf.layout.borders.Border.NO_BORDER));
-            itemsTable.addCell(new Cell().add(new Paragraph("â‚¹" + order.getTotalAmount()).setBold().setFontColor(PRIMARY).setTextAlignment(TextAlignment.RIGHT)).setPadding(6));
+            itemsTable.addCell(new Cell().add(new Paragraph("₹" + order.getTotalAmount()).setBold().setFontColor(PRIMARY).setTextAlignment(TextAlignment.RIGHT)).setPadding(6));
             doc.add(itemsTable);
 
             addDivider(doc);

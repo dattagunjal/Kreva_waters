@@ -1,25 +1,25 @@
 <nav class="navbar">
   <!-- Brand / Logo -->
-  <a routerLink="/home" class="brand">ðŸ’§ Kreva</a>
+  <a routerLink="/home" class="brand">💧 Kreva</a>
 
   <div class="nav-links">
-    <a routerLink="/home"     routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}">ðŸ  Home</a>
+    <a routerLink="/home"     routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}">🏠 Home</a>
     <a routerLink="/products" routerLinkActive="active">Products</a>
-    <!-- FIX #3 â€” About & Contact links -->
+    <!-- FIX #3 — About & Contact links -->
     <a routerLink="/about"    routerLinkActive="active">About Us</a>
     <a routerLink="/contact"  routerLinkActive="active">Contact</a>
 
     <ng-container *ngIf="authService.isLoggedIn()">
       <a routerLink="/cart" routerLinkActive="active">
-        ðŸ›’ Cart
+        🛒 Cart
         <span class="cart-badge" *ngIf="cartService.getCount() > 0">
           {{ cartService.getCount() }}
         </span>
       </a>
       <a routerLink="/orders" routerLinkActive="active">My Orders</a>
-      <a routerLink="/profile" routerLinkActive="active">ðŸ‘¤ Profile</a>
+      <a routerLink="/profile" routerLinkActive="active">👤 Profile</a>
       <a routerLink="/admin"       *ngIf="authService.isAdmin()" routerLinkActive="active">Admin</a>
-      <a routerLink="/admin/sales" *ngIf="authService.isAdmin()" routerLinkActive="active">ðŸ“Š Sales</a>
+      <a routerLink="/admin/sales" *ngIf="authService.isAdmin()" routerLinkActive="active">📊 Sales</a>
       <button class="btn-logout" (click)="logout()">Logout</button>
     </ng-container>
 
@@ -43,16 +43,16 @@
 <footer class="footer">
   <div class="footer-links">
     <a routerLink="/about">About Us</a>
-    <span>Â·</span>
+    <span>·</span>
     <a routerLink="/contact">Contact Us</a>
-    <span>Â·</span>
+    <span>·</span>
     <a routerLink="/products">Products</a>
   </div>
-  <p>Â© 2026 Kreva â€” Pure Water, Pure Life ðŸ’§</p>
+  <p>© 2026 Kreva — Pure Water, Pure Life 💧</p>
 </footer>
 
 <!--
-  FIX #3 â€” Persistent WhatsApp Support Button
+  FIX #3 — Persistent WhatsApp Support Button
   Always visible in the bottom-right corner on every page.
   Update the href to point to the real admin WhatsApp number.
 -->

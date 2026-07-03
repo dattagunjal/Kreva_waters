@@ -16,7 +16,7 @@ export class CartService {
     });
   }
 
-  // â”€â”€ helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── helpers ──────────────────────────────────────────────────────────────
   private getCartKey(user: any): string {
     if (user && user.email) {
       return `${CART_KEY}_${user.email}`;
@@ -43,7 +43,7 @@ export class CartService {
       const key = this.getCartKey(activeUser);
       localStorage.setItem(key, JSON.stringify(items));
     } catch {
-      // storage quota exceeded â€” carry on in memory only
+      // storage quota exceeded — carry on in memory only
     }
   }
 
@@ -52,7 +52,7 @@ export class CartService {
     this.cartSubject.next(items);
   }
 
-  // â”€â”€ public API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── public API ────────────────────────────────────────────────────────────
   get items(): CartItem[] {
     return this.cartSubject.value;
   }

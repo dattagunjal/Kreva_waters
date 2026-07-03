@@ -1,4 +1,4 @@
-/* ===== Global Styles â€” Kreva ===== */
+/* ===== Global Styles — Kreva ===== */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
@@ -613,7 +613,7 @@ body {
 }
 .btn-clear:hover { border-color: var(--danger); color: var(--danger); }
 
-/* ===== Form elements â€” textarea & select (missing from original) ===== */
+/* ===== Form elements — textarea & select (missing from original) ===== */
 .form-group textarea,
 .form-group select {
   width: 100%;
@@ -658,7 +658,7 @@ body {
   .form-row { grid-template-columns: 1fr; }
 }
 
-/* ===== Cart â€” quantity input ===== */
+/* ===== Cart — quantity input ===== */
 .qty-input {
   width: 52px;
   height: 32px;
@@ -750,9 +750,9 @@ body {
   color: var(--text);
 }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   AUTH ENHANCEMENTS â€” OTP, password strength, mode toggle, eye button
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+/* ══════════════════════════════════════════════════════════════════════
+   AUTH ENHANCEMENTS — OTP, password strength, mode toggle, eye button
+   ══════════════════════════════════════════════════════════════════════ */
 
 /* Auth mode toggle (Password / OTP) */
 .auth-mode-toggle {
@@ -808,7 +808,7 @@ body {
 .btn-otp-send:hover:not(:disabled) { background: var(--primary-dark); }
 .btn-otp-send:disabled             { opacity: 0.55; cursor: not-allowed; }
 
-/* OTP input â€” large centred digits */
+/* OTP input — large centred digits */
 .otp-group { animation: fadeSlideIn 0.25s ease; }
 .otp-input {
   letter-spacing: 0.35em;
@@ -934,9 +934,9 @@ body {
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* ══════════════════════════════════════════════════════════════════════
    HOME PAGE
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+   ══════════════════════════════════════════════════════════════════════ */
 
 .home-page { overflow-x: hidden; }
 
