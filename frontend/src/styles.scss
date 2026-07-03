@@ -1,4 +1,4 @@
-/* ===== Global Styles — Ugam Waters ===== */
+/* ===== Global Styles â€” Kreva ===== */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
@@ -127,14 +127,14 @@ body {
 .btn-logout:hover { border-color: var(--danger); color: var(--danger); }
 
 /* ===== Hero Banner ===== */
-.ugam-banner {
+.kreva-banner {
   background: linear-gradient(135deg, #1457a0 0%, #1a6bbf 40%, #0ea5c9 80%, #00b4d8 100%);
   padding: 3rem 2rem 2.5rem;
   position: relative;
   overflow: hidden;
 }
 
-.ugam-banner::before {
+.kreva-banner::before {
   content: '';
   position: absolute;
   inset: 0;
@@ -144,7 +144,7 @@ body {
   pointer-events: none;
 }
 
-.ugam-banner::after {
+.kreva-banner::after {
   content: '';
   position: absolute;
   bottom: -1px;
@@ -154,7 +154,7 @@ body {
   clip-path: ellipse(55% 100% at 50% 100%);
 }
 
-.ugam-banner h1 {
+.kreva-banner h1 {
   color: #ffffff;
   font-size: clamp(1.5rem, 3vw, 2.2rem);
   font-weight: 700;
@@ -164,7 +164,7 @@ body {
   z-index: 1;
 }
 
-.ugam-banner p {
+.kreva-banner p {
   color: rgba(255,255,255,0.88);
   font-size: 1rem;
   margin-top: 0.4rem;
@@ -567,7 +567,7 @@ body {
   .navbar { padding: 0 1rem; }
   .nav-links { gap: 0.85rem; font-size: 0.9rem; }
   .auth-card { padding: 2rem 1.5rem; }
-  .ugam-banner { padding: 2rem 1.25rem 2rem; }
+  .kreva-banner { padding: 2rem 1.25rem 2rem; }
 }
 
 @media (max-width: 480px) {
@@ -613,7 +613,7 @@ body {
 }
 .btn-clear:hover { border-color: var(--danger); color: var(--danger); }
 
-/* ===== Form elements — textarea & select (missing from original) ===== */
+/* ===== Form elements â€” textarea & select (missing from original) ===== */
 .form-group textarea,
 .form-group select {
   width: 100%;
@@ -658,7 +658,7 @@ body {
   .form-row { grid-template-columns: 1fr; }
 }
 
-/* ===== Cart — quantity input ===== */
+/* ===== Cart â€” quantity input ===== */
 .qty-input {
   width: 52px;
   height: 32px;
@@ -750,9 +750,9 @@ body {
   color: var(--text);
 }
 
-/* ══════════════════════════════════════════════════════════════════════
-   AUTH ENHANCEMENTS — OTP, password strength, mode toggle, eye button
-   ══════════════════════════════════════════════════════════════════════ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   AUTH ENHANCEMENTS â€” OTP, password strength, mode toggle, eye button
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 /* Auth mode toggle (Password / OTP) */
 .auth-mode-toggle {
@@ -808,7 +808,7 @@ body {
 .btn-otp-send:hover:not(:disabled) { background: var(--primary-dark); }
 .btn-otp-send:disabled             { opacity: 0.55; cursor: not-allowed; }
 
-/* OTP input — large centred digits */
+/* OTP input â€” large centred digits */
 .otp-group { animation: fadeSlideIn 0.25s ease; }
 .otp-input {
   letter-spacing: 0.35em;
@@ -934,9 +934,9 @@ body {
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ══════════════════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    HOME PAGE
-   ══════════════════════════════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 .home-page { overflow-x: hidden; }
 

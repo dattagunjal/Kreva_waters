@@ -96,12 +96,16 @@
             inputmode="numeric"
             autocomplete="postal-code"
             (input)="onPincodeInput($event)"
+            (blur)="onPincodeBlur()"
           />
-          <span class="error" *ngIf="pincodeCtrl.touched && pincodeCtrl.errors?.['required']">
+          <span class="error" *ngIf="(pincodeCtrl.touched || checkoutForm.submitted) && pincodeCtrl.errors?.['required']">
             Pincode is required.
           </span>
-          <span class="error" *ngIf="pincodeCtrl.touched && pincodeCtrl.errors?.['invalidPincode']">
-            Enter a valid 6-digit Indian pincode.
+          <span class="error" *ngIf="pincodeCtrl.touched && pincodeCtrl.value && pincodeCtrl.errors?.['invalidPincode']">
+            The entered pincode ({{ pincodeCtrl.value }}) is invalid or does not exist in India.
+          </span>
+          <span class="error" *ngIf="pincodeCtrl.touched && pincodeCtrl.value && pincodeCtrl.errors?.['notServiceable']">
+            We are not currently providing service to this pincode.
           </span>
         </div>
 
@@ -111,7 +115,6 @@
           <select id="paymentMethod" formControlName="paymentMethod">
             <option value="COD">💵 Cash on Delivery</option>
             <option value="UPI">📱 UPI</option>
-            <option value="CARD">💳 Credit / Debit Card</option>
           </select>
         </div>
 
@@ -137,6 +140,7 @@
       </div>
       <p class="order-meta">📍 {{ order.address }}</p>
       <p class="order-meta">🕐 {{ order.createdAt | date:'d MMM y, h:mm a' }}</p>
+      <p class="order-meta">💳 <strong>Payment Method:</strong> {{ order.paymentMethod === 'COD' ? '💵 Cash on Delivery' : '📱 UPI' }}</p>
 
       <!-- Line items -->
       <div class="order-items" *ngIf="order.items?.length">
@@ -167,6 +171,34 @@
               (click)="cancelOrder(order.id!)">
         {{ cancelingOrderId === order.id ? 'Cancelling...' : 'Cancel Order' }}
       </button>
+
+      <!-- Download Invoice Button (only shown for Confirmed or Delivered orders) -->
+      <button *ngIf="order.status === 'CONFIRMED' || order.status === 'DELIVERED'" 
+              class="btn-primary" 
+              style="padding:6px 12px; font-size:0.85rem; margin-top:8px; display:inline-flex; align-items:center; justify-content:center; gap:6px; cursor:pointer;"
+              (click)="downloadInvoice(order.id!)">
+        📄 Download Invoice
+      </button>
     </div>
   </div>
 </div>
+
+<!-- UPI Payment Success Modal (shown after Razorpay confirms payment) -->
+<div *ngIf="showPayNowModal && showPaymentSuccess" class="modal-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; z-index:9999; padding: 1rem;">
+  <div style="background:white; padding:2rem; border-radius:16px; max-width:450px; width:100%; box-shadow:0 10px 25px rgba(0,0,0,0.2); text-align:center;">
+    <div style="font-size:3rem; color:#22c55e; margin-bottom:1rem;">🎉</div>
+    <h3 style="margin-top:0; font-size:1.4rem; font-weight:700; color:#22c55e; margin-bottom:0.5rem;">Payment Successful!</h3>
+    <p style="font-size:0.95rem; color:var(--text-muted); margin-bottom:1.5rem;">
+      Your UPI payment of <strong>₹{{ totalForUpi }}</strong> has been verified by Razorpay.
+    </p>
+    <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:12px; padding:1rem; font-size:0.9rem; text-align:left; margin-bottom:1.5rem; line-height:1.6;">
+      <div><strong>Order ID:</strong> <span style="font-family:monospace; font-weight:600; color:#15803d;">{{ enteredTxnId }}</span></div>
+      <div><strong>Payment ID:</strong> <span style="font-family:monospace; font-weight:600; color:#15803d;">{{ enteredUtr }}</span></div>
+      <div><strong>Status:</strong> ✅ Verified & Completed</div>
+    </div>
+    <p style="font-size:0.9rem; color:var(--text-muted); margin-bottom: 0;">
+      Placing your order and redirecting...
+    </p>
+  </div>
+</div>
+

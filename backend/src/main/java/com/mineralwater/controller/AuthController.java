@@ -28,17 +28,22 @@ public class AuthController {
      */
     @PostMapping("/send-otp")
     public ResponseEntity<Map<String, String>> sendOtp(@RequestBody SendOtpRequest req) {
-        String generatedCode = authService.sendOtp(req.getLoginId(), req.getPurpose());
+        try {
+            String generatedCode = authService.sendOtp(req.getLoginId(), req.getPurpose());
 
-        if (mockEnabled) {
-            // Return OTP in response body for local dev convenience.
-            // PRODUCTION: remove devOtp field entirely — the code only goes via SMS/Email.
-            return ResponseEntity.ok(Map.of(
-                "message", "OTP sent (mock mode — check server console or devOtp field)",
-                "devOtp",  generatedCode
+            if (mockEnabled) {
+                return ResponseEntity.ok(Map.of(
+                    "message", "OTP sent (mock mode — check server console or devOtp field)",
+                    "devOtp",  generatedCode
+                ));
+            }
+            return ResponseEntity.ok(Map.of("message", "OTP sent successfully"));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of(
+                "message", "Failed to send OTP: " + (e.getMessage() != null ? e.getMessage() : e.toString())
             ));
         }
-        return ResponseEntity.ok(Map.of("message", "OTP sent successfully"));
     }
 
     @PostMapping("/register")

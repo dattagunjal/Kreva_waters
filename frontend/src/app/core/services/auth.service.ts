@@ -19,8 +19,28 @@ export class AuthService {
   }
 
   constructor(private http: HttpClient, private router: Router) {
+    const token = localStorage.getItem('token');
     const stored = localStorage.getItem('user');
-    if (stored) this.currentUserSubject.next(JSON.parse(stored));
+    
+    if (token && this.isTokenExpired(token)) {
+      this.logout();
+    } else if (stored) {
+      this.currentUserSubject.next(JSON.parse(stored));
+    }
+  }
+
+  private isTokenExpired(token: string): boolean {
+    try {
+      const parts = token.split('.');
+      if (parts.length !== 3) return true;
+      const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+      if (payload.exp) {
+        return (Date.now() / 1000) >= payload.exp;
+      }
+      return false;
+    } catch (e) {
+      return true;
+    }
   }
 
   /** Send OTP for either registration or passwordless login */
@@ -43,7 +63,8 @@ export class AuthService {
   logout(): void {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    localStorage.removeItem('ugam_cart');
+    localStorage.removeItem('kreva_cart');
+    localStorage.removeItem('last_active');
     this.currentUserSubject.next(null);
     this.router.navigate(['/auth/login']);
   }

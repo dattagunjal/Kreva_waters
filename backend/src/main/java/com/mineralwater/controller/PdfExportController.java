@@ -31,7 +31,7 @@ public class PdfExportController {
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename=\"ugamwaters-daily-sales-" + date + ".pdf\"")
+                        "attachment; filename=\"Kreva-daily-sales-" + date + ".pdf\"")
                 .contentType(MediaType.APPLICATION_PDF)
                 .contentLength(pdf.length)
                 .body(pdf);
@@ -51,7 +51,7 @@ public class PdfExportController {
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename=\"ugamwaters-monthly-sales-" + monthName + "-" + year + ".pdf\"")
+                        "attachment; filename=\"Kreva-monthly-sales-" + monthName + "-" + year + ".pdf\"")
                 .contentType(MediaType.APPLICATION_PDF)
                 .contentLength(pdf.length)
                 .body(pdf);

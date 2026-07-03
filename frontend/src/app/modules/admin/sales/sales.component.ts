@@ -73,7 +73,7 @@ export class SalesComponent implements OnInit {
   exportDailyPdf(): void {
     this.dailyExporting = true;
     this.salesService.exportDailyPdf(this.selectedDate).subscribe({
-      next: (blob) => { this.downloadFile(blob, `ugamwaters-daily-${this.selectedDate}.pdf`); this.dailyExporting = false; },
+      next: (blob) => { this.downloadFile(blob, `Kreva-daily-${this.selectedDate}.pdf`); this.dailyExporting = false; },
       error: () => { this.dailyExporting = false; }
     });
   }
@@ -83,7 +83,7 @@ export class SalesComponent implements OnInit {
     this.salesService.exportMonthlyPdf(this.selectedYear, this.selectedMonth).subscribe({
       next: (blob) => {
         const m = this.months.find(x => x.value === this.selectedMonth)?.label.toLowerCase();
-        this.downloadFile(blob, `ugamwaters-monthly-${m}-${this.selectedYear}.pdf`);
+        this.downloadFile(blob, `Kreva-monthly-${m}-${this.selectedYear}.pdf`);
         this.monthlyExporting = false;
       },
       error: () => { this.monthlyExporting = false; }

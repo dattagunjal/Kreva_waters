@@ -45,9 +45,11 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**", "/api/payment/**").permitAll()
+                .requestMatchers("/api/auth/**", "/api/contact").permitAll()
+                .requestMatchers("/api/payment/webhook", "/api/payment/bank-details", "/api/payment/razorpay-key").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/products", "/api/products/**").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/categories", "/api/categories/**").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/pincodes/check/**").permitAll()
                 .requestMatchers("/api/products", "/api/products/**").hasRole("ADMIN")
                 .requestMatchers("/api/categories", "/api/categories/**").hasRole("ADMIN")
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
@@ -120,7 +122,12 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:4200"));
+        config.setAllowedOrigins(List.of(
+            "http://localhost:4200",
+            "https://www.Kreva.in",
+            "https://Kreva.in",
+            "https://kreva.vercel.app"
+        ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);

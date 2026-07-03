@@ -14,19 +14,19 @@ import java.util.regex.Pattern;
 /**
  * Generates, delivers, and verifies 6-digit OTPs.
  *
- * ── MOCK MODE (otp.mock.enabled=true, for local dev) ─────────────────────────
+ * â”€â”€ MOCK MODE (otp.mock.enabled=true, for local dev) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
  *   - OTP is printed to the Spring console log.
  *   - The generated code is also returned to the caller so the controller can
  *     set it in the response header X-Dev-OTP (makes Postman/frontend testing easy).
  *   - No real SMS or email is sent.
  *
- * ── PRODUCTION MODE (otp.mock.enabled=false) ──────────────────────────────────
- *   - For MOBILE numbers  → integrate Fast2SMS (already used for order alerts).
+ * â”€â”€ PRODUCTION MODE (otp.mock.enabled=false) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+ *   - For MOBILE numbers  â†’ integrate Fast2SMS (already used for order alerts).
  *     Replace the sendSmsOtp() stub with the Fast2SMS bulk/transactional call.
- *   - For EMAIL addresses → integrate JavaMailSender (Spring Mail) or any
+ *   - For EMAIL addresses â†’ integrate JavaMailSender (Spring Mail) or any
  *     transactional email provider (SendGrid, AWS SES, Mailgun).
  *     Replace the sendEmailOtp() stub with your chosen provider.
- * ─────────────────────────────────────────────────────────────────────────────
+ * â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
  */
 @Service
 @RequiredArgsConstructor
@@ -46,13 +46,22 @@ public class OtpService {
     @Value("${otp.mock.enabled:true}")
     private boolean mockEnabled;
 
-    // ── public API ─────────────────────────────────────────────────────────────
+    @Value("${sms.api.key:}")
+    private String smsApiKey;
+
+    @Value("${brevo.api.key:}")
+    private String brevoApiKey;
+
+    @Value("${brevo.sender.email:info@Kreva.in}")
+    private String brevoSenderEmail;
+
+    // â”€â”€ public API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /**
      * Generates a new OTP for the given loginId and purpose, persists it, and
      * delivers it (mock or real).
      *
-     * @return the generated code — always returned so the controller can expose
+     * @return the generated code â€” always returned so the controller can expose
      *         it in X-Dev-OTP when mockEnabled=true; in production the controller
      *         MUST NOT include it in the response.
      */
@@ -73,14 +82,14 @@ public class OtpService {
         otpRepository.save(entry);
 
         if (mockEnabled) {
-            // ── MOCK: print to console and return code ──────────────────────
-            log.info("╔══════════════════════════════════════╗");
-            log.info("║  [MOCK OTP] loginId : {}  ║", loginId);
-            log.info("║  [MOCK OTP] purpose : {}        ║", purpose);
-            log.info("║  [MOCK OTP] code    : {}              ║", code);
-            log.info("╚══════════════════════════════════════╝");
+            // â”€â”€ MOCK: print to console and return code â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+            log.info("â•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•—");
+            log.info("â•‘  [MOCK OTP] loginId : {}  â•‘", loginId);
+            log.info("â•‘  [MOCK OTP] purpose : {}        â•‘", purpose);
+            log.info("â•‘  [MOCK OTP] code    : {}              â•‘", code);
+            log.info("â•šâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•");
         } else {
-            // ── PRODUCTION: dispatch based on loginId type ──────────────────
+            // â”€â”€ PRODUCTION: dispatch based on loginId type â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             if (EMAIL_PATTERN.matcher(loginId).matches()) {
                 sendEmailOtp(loginId, code);
             } else {
@@ -113,47 +122,83 @@ public class OtpService {
         otpRepository.save(entry);
     }
 
-    // ── private helpers ────────────────────────────────────────────────────────
+    // â”€â”€ private helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     private String generateCode() {
-        // Guaranteed 6-digit code (100000–999999)
+        // Guaranteed 6-digit code (100000â€“999999)
         return String.valueOf(100000 + RANDOM.nextInt(900000));
     }
 
-    /**
-     * TODO (PRODUCTION): Replace this stub with a real SMS call.
-     *
-     * Example using Fast2SMS (already wired in NotificationService):
-     * <pre>
-     *   Map&lt;String, Object&gt; body = Map.of(
-     *       "route",    "q",
-     *       "message",  "Your Ugam Waters OTP is: " + code + ". Valid for " + expiryMinutes + " minutes.",
-     *       "language", "english",
-     *       "flash",    0,
-     *       "numbers",  mobile
-     *   );
-     *   // POST to https://www.fast2sms.com/dev/bulkV2 with Authorization header = apiKey
-     * </pre>
-     */
     private void sendSmsOtp(String mobile, String code) {
-        log.warn("[OTP] sendSmsOtp() — production stub not yet implemented for mobile={}", mobile);
-        // Wire Fast2SMS / Twilio / MSG91 here
+        if (smsApiKey == null || smsApiKey.isBlank()) {
+            log.warn("[SMS Stub] SMS API key is not configured. Simulating SMS OTP to {}: {}", mobile, code);
+            return;
+        }
+
+        try {
+            org.springframework.web.client.RestTemplate restTemplate = new org.springframework.web.client.RestTemplate();
+            String url = "https://www.fast2sms.com/dev/bulkV2";
+
+            org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+            headers.set("authorization", smsApiKey);
+            headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
+
+            // Using the "q" (Quick SMS) route to bypass DLT / website verification requirements
+            java.util.Map<String, Object> body = java.util.Map.of(
+                "route", "q",
+                "message", "Your Kreva verification code is: " + code,
+                "language", "english",
+                "flash", 0,
+                "numbers", mobile
+            );
+
+            org.springframework.http.HttpEntity<java.util.Map<String, Object>> request = new org.springframework.http.HttpEntity<>(body, headers);
+            org.springframework.http.ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
+
+            if (response.getStatusCode().is2xxSuccessful()) {
+                log.info("âœ… SMS OTP successfully sent to: {}", mobile);
+            } else {
+                log.error("âŒ SMS OTP failed for: {}. Response: {}", mobile, response.getBody());
+                throw new RuntimeException("SMS gateway error: " + response.getBody());
+            }
+        } catch (Exception e) {
+            log.error("âŒ Error sending SMS OTP to: {}", mobile, e);
+            throw new RuntimeException("Failed to send SMS OTP: " + e.getMessage());
+        }
     }
 
-    /**
-     * TODO (PRODUCTION): Replace this stub with a real email call.
-     *
-     * Example using Spring Mail:
-     * <pre>
-     *   SimpleMailMessage msg = new SimpleMailMessage();
-     *   msg.setTo(email);
-     *   msg.setSubject("Your Ugam Waters OTP");
-     *   msg.setText("Your OTP is: " + code + ". Valid for " + expiryMinutes + " minutes.");
-     *   mailSender.send(msg);   // inject JavaMailSender
-     * </pre>
-     */
     private void sendEmailOtp(String email, String code) {
-        log.warn("[OTP] sendEmailOtp() — production stub not yet implemented for email={}", email);
-        // Wire JavaMailSender / SendGrid / AWS SES here
+        if (brevoApiKey == null || brevoApiKey.isBlank()) {
+            log.warn("[Email Brevo Stub] Brevo API key is not configured. Simulating Email OTP to {}: {}", email, code);
+            return;
+        }
+
+        try {
+            org.springframework.web.client.RestTemplate restTemplate = new org.springframework.web.client.RestTemplate();
+            String url = "https://api.brevo.com/v3/smtp/email";
+
+            org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+            headers.set("api-key", brevoApiKey);
+            headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
+
+            java.util.Map<String, Object> body = new java.util.HashMap<>();
+            body.put("sender", java.util.Map.of("name", "Kreva", "email", brevoSenderEmail));
+            body.put("to", java.util.List.of(java.util.Map.of("email", email)));
+            body.put("subject", "Your Kreva OTP Verification Code");
+            body.put("textContent", "Your OTP verification code is: " + code + "\n\nThis code will expire in " + expiryMinutes + " minutes.");
+
+            org.springframework.http.HttpEntity<java.util.Map<String, Object>> request = new org.springframework.http.HttpEntity<>(body, headers);
+            org.springframework.http.ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
+
+            if (response.getStatusCode().is2xxSuccessful()) {
+                log.info("âœ… Brevo Email OTP successfully sent to: {}", email);
+            } else {
+                log.error("âŒ Brevo Email OTP failed for: {}. Response: {}", email, response.getBody());
+                throw new RuntimeException("Brevo API error: " + response.getBody());
+            }
+        } catch (Exception e) {
+            log.error("âŒ Error sending Brevo Email OTP to: {}", email, e);
+            throw new RuntimeException("Failed to send Email OTP: " + e.getMessage());
+        }
     }
 }

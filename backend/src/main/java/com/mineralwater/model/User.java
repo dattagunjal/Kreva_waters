@@ -35,8 +35,7 @@ public class User {
     @Column
     private String address;
 
-    @Lob
-    @Column(length = 16777215)
+    @Column(columnDefinition = "TEXT")
     private String profileImage;
 
     @Column(updatable = false)

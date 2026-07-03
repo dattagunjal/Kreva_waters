@@ -42,12 +42,17 @@ public class Order {
     @Column(nullable = false)
     private String address;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     private Status status = Status.PENDING;
 
     @Column
     private String paymentId;
 
+    @Column
+    private String paymentMethod;
+
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     private PaymentStatus paymentStatus = PaymentStatus.PENDING;
 
@@ -60,7 +65,9 @@ public class Order {
 
     @PrePersist
     protected void onCreate() {
-        if (this.createdAt == null) this.createdAt = LocalDateTime.now();
+        if (this.createdAt == null) {
+            this.createdAt = java.time.ZonedDateTime.now(java.time.ZoneId.of("Asia/Kolkata")).toLocalDateTime();
+        }
     }
 
     public enum Status { PENDING, CONFIRMED, DELIVERED, CANCELLED }

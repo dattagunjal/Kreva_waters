@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
 import { Product, Order, User } from '../../../shared/models/models';
 import { ProductService } from '../../../core/services/product.service';
 import { OrderService } from '../../../core/services/order.service';
@@ -18,8 +19,15 @@ export class AdminDashboardComponent implements OnInit {
   users: User[] = [];
   stats: any = null;
 
-  activeTab: 'overview' | 'products' | 'categories' | 'orders' | 'users' = 'overview';
+  activeTab: 'overview' | 'products' | 'categories' | 'orders' | 'users' | 'pincodes' = 'overview';
   
+  pincodes: any[] = [];
+  pincodeForm: FormGroup;
+  pincodeSearch = '';
+  pincodePage = 1;
+  pincodeSuccess = '';
+  pincodeError = '';
+
   productForm: FormGroup;
   editingProduct: Product | null = null;
   showForm = false;
@@ -50,7 +58,8 @@ export class AdminDashboardComponent implements OnInit {
     private productService: ProductService,
     private orderService: OrderService,
     private categoryService: CategoryService,
-    private adminService: AdminService
+    private adminService: AdminService,
+    private http: HttpClient
   ) {
     this.productForm = this.fb.group({
       name: ['', Validators.required],
@@ -64,6 +73,10 @@ export class AdminDashboardComponent implements OnInit {
     this.categoryForm = this.fb.group({
       name: ['', Validators.required]
     });
+
+    this.pincodeForm = this.fb.group({
+      pincode: ['', [Validators.required, Validators.pattern('^[1-9][0-9]{5}$')]]
+    });
   }
 
   ngOnInit(): void {
@@ -72,6 +85,7 @@ export class AdminDashboardComponent implements OnInit {
     this.loadCategories();
     this.loadOrders();
     this.loadUsers();
+    this.loadPincodes();
   }
 
   loadStats(): void {
@@ -184,6 +198,22 @@ export class AdminDashboardComponent implements OnInit {
       this.loadOrders();
       this.loadStats();
     });
+  }
+
+  deleteOrder(id: number): void {
+    if (confirm('Are you sure you want to completely delete this order? This action cannot be undone.')) {
+      this.orderService.deleteOrder(id).subscribe({
+        next: () => {
+          this.loadOrders();
+          this.loadStats();
+        },
+        error: (err) => alert(err.error?.message || 'Failed to delete order.')
+      });
+    }
+  }
+
+  downloadInvoice(id: number): void {
+    this.orderService.downloadInvoice(id);
   }
 
   // ── User management ────────────────────────────────────────────────────────
@@ -305,5 +335,100 @@ export class AdminDashboardComponent implements OnInit {
 
   getUserPageCount() {
     return Math.ceil(this.getFilteredUsers().length / this.pageSize) || 1;
+  }
+
+  // Pincodes
+  loadPincodes(): void {
+    this.adminService.getServiceablePincodes().subscribe({
+      next: (data) => this.pincodes = data,
+      error: (err) => console.error('Failed to load pincodes', err)
+    });
+  }
+
+  addPincode(): void {
+    if (this.pincodeForm.invalid) {
+      this.pincodeForm.markAllAsTouched();
+      return;
+    }
+    const code = this.pincodeForm.value.pincode.toString().trim();
+    
+    // Check if it's a real pincode via India Post API first
+    this.http.get<any[]>(`https://api.postalpincode.in/pincode/${code}`).subscribe({
+      next: (res) => {
+        const isValid = !!(res && res[0] && res[0].Status === 'Success');
+        if (!isValid) {
+          this.pincodeError = `The entered pincode (${code}) is invalid or does not exist in India.`;
+          this.pincodeSuccess = '';
+          return;
+        }
+
+        // Pincode exists! Save to database
+        this.adminService.addServiceablePincode(code).subscribe({
+          next: () => {
+            this.pincodeSuccess = `Pincode ${code} added successfully!`;
+            this.pincodeError = '';
+            this.pincodeForm.reset();
+            this.loadPincodes();
+            setTimeout(() => this.pincodeSuccess = '', 3000);
+          },
+          error: (err) => {
+            this.pincodeError = err.error?.message || 'Failed to add pincode.';
+            this.pincodeSuccess = '';
+          }
+        });
+      },
+      error: () => {
+        // Fallback: allow if API is down
+        this.adminService.addServiceablePincode(code).subscribe({
+          next: () => {
+            this.pincodeSuccess = `Pincode ${code} added successfully!`;
+            this.pincodeError = '';
+            this.pincodeForm.reset();
+            this.loadPincodes();
+            setTimeout(() => this.pincodeSuccess = '', 3000);
+          },
+          error: (err) => {
+            this.pincodeError = err.error?.message || 'Failed to add pincode.';
+            this.pincodeSuccess = '';
+          }
+        });
+      }
+    });
+  }
+
+  deletePincode(pincode: string): void {
+    if (confirm(`Are you sure you want to remove pincode ${pincode} from serviceable list?`)) {
+      this.adminService.deleteServiceablePincode(pincode).subscribe({
+        next: () => {
+          this.pincodeSuccess = `Pincode ${pincode} removed successfully.`;
+          this.pincodeError = '';
+          this.loadPincodes();
+          setTimeout(() => this.pincodeSuccess = '', 3000);
+        },
+        error: (err) => {
+          this.pincodeError = err.error?.message || 'Failed to remove pincode.';
+          this.pincodeSuccess = '';
+        }
+      });
+    }
+  }
+
+  getFilteredPincodes() {
+    let result = [...this.pincodes];
+    if (this.pincodeSearch) {
+      const q = this.pincodeSearch.trim();
+      result = result.filter(p => p.pincode.includes(q));
+    }
+    return result;
+  }
+
+  getPaginatedPincodes() {
+    const filtered = this.getFilteredPincodes();
+    const startIndex = (this.pincodePage - 1) * this.pageSize;
+    return filtered.slice(startIndex, startIndex + this.pageSize);
+  }
+
+  getPincodePageCount() {
+    return Math.ceil(this.getFilteredPincodes().length / this.pageSize) || 1;
   }
 }

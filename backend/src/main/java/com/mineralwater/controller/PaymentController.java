@@ -28,6 +28,61 @@ public class PaymentController {
     @Value("${stripe.webhook.secret}")
     private String webhookSecret;
 
+    @Value("${admin.bank.name:State Bank of India}")
+    private String bankName;
+
+    @Value("${admin.bank.account.name:Kreva}")
+    private String bankAccountName;
+
+    @Value("${admin.bank.account.number:32948293847}")
+    private String bankAccountNumber;
+
+    @Value("${admin.bank.ifsc:SBIN0001234}")
+    private String bankIfsc;
+
+    @Value("${admin.bank.upi.id:Kreva@oksbi}")
+    private String bankUpiId;
+
+    @GetMapping("/bank-details")
+    public ResponseEntity<java.util.Map<String, String>> getBankDetails() {
+        return ResponseEntity.ok(java.util.Map.of(
+            "bankName", bankName,
+            "accountName", bankAccountName,
+            "accountNumber", bankAccountNumber,
+            "ifsc", bankIfsc,
+            "upiId", bankUpiId
+        ));
+    }
+
+    @Value("${razorpay.key.id:rzp_test_yGzB4Fh5j7z8K9}")
+    private String razorpayKeyId;
+
+    @GetMapping("/razorpay-key")
+    public ResponseEntity<Map<String, String>> getRazorpayKey() {
+        return ResponseEntity.ok(Map.of("keyId", razorpayKeyId));
+    }
+
+    @PostMapping("/razorpay/create-order")
+    public ResponseEntity<Map<String, Object>> createRazorpayOrder(@RequestBody Map<String, Object> request) {
+        Double amount = Double.valueOf(request.get("amount").toString());
+        Map<String, Object> orderData = paymentService.createRazorpayOrder(amount);
+        return ResponseEntity.ok(orderData);
+    }
+
+    @PostMapping("/razorpay/confirm")
+    public ResponseEntity<?> confirmRazorpay(
+            @RequestBody Map<String, String> request,
+            @org.springframework.security.core.annotation.AuthenticationPrincipal org.springframework.security.core.userdetails.UserDetails userDetails) {
+        String paymentId = request.get("paymentId");
+        com.mineralwater.model.Order order = orderService.confirmPayment(paymentId, userDetails.getUsername());
+        try {
+            notificationService.sendOrderNotification(order);
+        } catch (Exception e) {
+            log.error("Failed to send WhatsApp notification: {}", e.getMessage());
+        }
+        return ResponseEntity.ok(order);
+    }
+
     @PostMapping("/create-intent")
     public ResponseEntity<Map<String, Object>> createPaymentIntent(@RequestBody Map<String, Object> request) {
         Double amount = Double.valueOf(request.get("amount").toString());

@@ -8,6 +8,7 @@
     <button [class.active]="activeTab === 'categories'" (click)="activeTab = 'categories'">🏷️ Categories</button>
     <button [class.active]="activeTab === 'orders'"     (click)="activeTab = 'orders'">📋 Orders</button>
     <button [class.active]="activeTab === 'users'"      (click)="activeTab = 'users'">👥 Users</button>
+    <button [class.active]="activeTab === 'pincodes'"   (click)="activeTab = 'pincodes'">📍 Pincode Availability</button>
   </div>
 
   <!-- ── OVERVIEW TAB ──────────────────────────────────────────────── -->
@@ -229,12 +230,16 @@
           <td>₹{{ order.totalAmount }}</td>
           <td><span class="status" [class]="order.status.toLowerCase()">{{ order.status }}</span></td>
           <td>
-            <select [value]="order.status" (change)="updateOrderStatus(order.id!, $any($event.target).value)" style="padding:4px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle); background:var(--bg-input); color:var(--text-primary);">
-              <option value="PENDING">Pending</option>
-              <option value="CONFIRMED">Confirmed</option>
-              <option value="DELIVERED">Delivered</option>
-              <option value="CANCELLED">Cancelled</option>
-            </select>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <select [value]="order.status" (change)="updateOrderStatus(order.id!, $any($event.target).value)" style="padding:4px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle); background:var(--bg-input); color:var(--text-primary); cursor:pointer;">
+                <option value="PENDING">Pending</option>
+                <option value="CONFIRMED">Confirmed</option>
+                <option value="DELIVERED">Delivered</option>
+                <option value="CANCELLED">Cancelled</option>
+              </select>
+              <button class="btn-secondary" style="padding:4px 8px; font-size:0.8rem; height:30px; display:inline-flex; align-items:center; justify-content:center; border:1px solid var(--primary); color:var(--primary); background:white; margin:0;" (click)="downloadInvoice(order.id!)">Invoice</button>
+              <button class="btn-delete" style="padding:4px 8px; font-size:0.8rem; height:30px; display:inline-flex; align-items:center; justify-content:center; margin:0;" (click)="deleteOrder(order.id!)">Delete</button>
+            </div>
           </td>
         </tr>
         <tr *ngIf="getFilteredOrders().length === 0">
@@ -296,6 +301,89 @@
       <button [disabled]="userPage === 1" (click)="userPage = userPage - 1" class="btn-secondary">Prev</button>
       <span>Page {{ userPage }} of {{ getUserPageCount() }}</span>
       <button [disabled]="userPage === getUserPageCount()" (click)="userPage = userPage + 1" class="btn-secondary">Next</button>
+    </div>
+  </div>
+
+  <!-- ── PINCODES TAB ──────────────────────────────────────────────── -->
+  <div *ngIf="activeTab === 'pincodes'">
+    <div class="tab-header mb-4">
+      <h3>📍 Serviceable Pincodes</h3>
+      <button class="btn-primary" (click)="showForm = !showForm">
+        {{ showForm ? '✖ Close Form' : '➕ Add Pincode' }}
+      </button>
+    </div>
+
+    <div class="alert alert-success" *ngIf="pincodeSuccess">{{ pincodeSuccess }}</div>
+    <div class="alert alert-danger" *ngIf="pincodeError">{{ pincodeError }}</div>
+
+    <!-- Add Pincode Form -->
+    <div class="form-container mb-6" *ngIf="showForm">
+      <h4>Add Serviceable Pincode</h4>
+      <form [formGroup]="pincodeForm" (ngSubmit)="addPincode()">
+        <div class="form-group">
+          <label for="pincode">Pincode (6-digit Indian Pincode) <span class="required-star">*</span></label>
+          <input
+            type="text"
+            id="pincode"
+            formControlName="pincode"
+            placeholder="e.g. 412410"
+            maxlength="6"
+            class="form-control"
+          />
+          <span class="error" *ngIf="pincodeForm.get('pincode')?.touched && pincodeForm.get('pincode')?.errors?.['required']">
+            Pincode is required.
+          </span>
+          <span class="error" *ngIf="pincodeForm.get('pincode')?.touched && pincodeForm.get('pincode')?.errors?.['pattern']">
+            Invalid pincode format. Must be a valid 6-digit Indian pincode.
+          </span>
+        </div>
+        <button type="submit" class="btn-primary">Add Pincode</button>
+      </form>
+    </div>
+
+    <!-- Search & Filter -->
+    <div class="search-row mb-4">
+      <input
+        type="text"
+        placeholder="Search pincodes..."
+        [(ngModel)]="pincodeSearch"
+        (input)="pincodePage = 1"
+        class="search-input"
+      />
+    </div>
+
+    <!-- Pincodes Table -->
+    <table class="table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Pincode</th>
+          <th>Created Date</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let p of getPaginatedPincodes()">
+          <td>{{ p.id }}</td>
+          <td><strong>{{ p.pincode }}</strong></td>
+          <td>{{ p.createdAt | date:'d MMM y, h:mm a' }}</td>
+          <td>
+            <button class="btn-delete" (click)="deletePincode(p.pincode)">
+              Remove
+            </button>
+          </td>
+        </tr>
+        <tr *ngIf="getFilteredPincodes().length === 0">
+          <td colspan="4" class="text-center text-muted">No serviceable pincodes configured. Delivery is open to all pincodes.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Pagination -->
+    <div class="pagination-row mt-4" *ngIf="getPincodePageCount() > 1">
+      <button [disabled]="pincodePage === 1" (click)="pincodePage = pincodePage - 1" class="btn-secondary">Prev</button>
+      <span>Page {{ pincodePage }} of {{ getPincodePageCount() }}</span>
+      <button [disabled]="pincodePage === getPincodePageCount()" (click)="pincodePage = pincodePage + 1" class="btn-secondary">Next</button>
     </div>
   </div>
 </div>
