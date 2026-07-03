@@ -23,7 +23,7 @@ public class ContactController {
     @Value("${brevo.api.key:}")
     private String brevoApiKey;
 
-    @Value("${brevo.sender.email:info@ugamwaters.in}")
+    @Value("${brevo.sender.email:info@Kreva.in}")
     private String brevoSenderEmail;
 
     @Value("${contact.notification.email:dattagunjal286@gmail.com}")
@@ -74,12 +74,12 @@ public class ContactController {
             headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
 
             Map<String, Object> body = new HashMap<>();
-            body.put("sender", Map.of("name", "Ugam Waters Contact", "email", brevoSenderEmail));
+            body.put("sender", Map.of("name", "Kreva Contact", "email", brevoSenderEmail));
             body.put("to", List.of(Map.of("email", contactNotificationEmail)));
             body.put("subject", "New Contact Enquiry: " + enquiry.getSubject());
             
             String textContent = String.format(
-                "You have received a new contact enquiry on Ugam Waters.\n\n" +
+                "You have received a new contact enquiry on Kreva.\n\n" +
                 "Name: %s\n" +
                 "Email/Mobile: %s\n" +
                 "Subject: %s\n" +
@@ -97,12 +97,12 @@ public class ContactController {
             org.springframework.http.ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
 
             if (response.getStatusCode().is2xxSuccessful()) {
-                log.info("✅ Contact enquiry email notification successfully sent to: {}", contactNotificationEmail);
+                log.info("âœ… Contact enquiry email notification successfully sent to: {}", contactNotificationEmail);
             } else {
-                log.error("❌ Contact enquiry email notification failed. Response: {}", response.getBody());
+                log.error("âŒ Contact enquiry email notification failed. Response: {}", response.getBody());
             }
         } catch (Exception e) {
-            log.error("❌ Error sending contact enquiry email notification", e);
+            log.error("âŒ Error sending contact enquiry email notification", e);
         }
     }
 }

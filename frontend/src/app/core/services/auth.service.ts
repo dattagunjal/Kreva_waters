@@ -63,7 +63,7 @@ export class AuthService {
   logout(): void {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    localStorage.removeItem('ugam_cart');
+    localStorage.removeItem('kreva_cart');
     localStorage.removeItem('last_active');
     this.currentUserSubject.next(null);
     this.router.navigate(['/auth/login']);

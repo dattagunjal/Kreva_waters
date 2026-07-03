@@ -75,7 +75,7 @@ export class OrderService {
         const fileUrl = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = fileUrl;
-        a.download = `ugamwaters-invoice-${orderId}.pdf`;
+        a.download = `Kreva-invoice-${orderId}.pdf`;
         a.click();
         window.URL.revokeObjectURL(fileUrl);
       },

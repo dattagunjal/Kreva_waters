@@ -3,7 +3,7 @@ import { BehaviorSubject } from 'rxjs';
 import { CartItem, Product, WaterBottleCustomization } from '../../shared/models/models';
 import { AuthService } from './auth.service';
 
-const CART_KEY = 'ugam_cart';
+const CART_KEY = 'kreva_cart';
 
 @Injectable({ providedIn: 'root' })
 export class CartService {
@@ -16,7 +16,7 @@ export class CartService {
     });
   }
 
-  // ── helpers ──────────────────────────────────────────────────────────────
+  // â”€â”€ helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   private getCartKey(user: any): string {
     if (user && user.email) {
       return `${CART_KEY}_${user.email}`;
@@ -43,7 +43,7 @@ export class CartService {
       const key = this.getCartKey(activeUser);
       localStorage.setItem(key, JSON.stringify(items));
     } catch {
-      // storage quota exceeded — carry on in memory only
+      // storage quota exceeded â€” carry on in memory only
     }
   }
 
@@ -52,7 +52,7 @@ export class CartService {
     this.cartSubject.next(items);
   }
 
-  // ── public API ────────────────────────────────────────────────────────────
+  // â”€â”€ public API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   get items(): CartItem[] {
     return this.cartSubject.value;
   }

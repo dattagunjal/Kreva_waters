@@ -114,7 +114,7 @@ public class PdfExportService {
                 .setBorder(null)
                 .setPadding(20);
 
-        cell.add(new Paragraph("💧 UgamWaters")
+        cell.add(new Paragraph("ðŸ’§ Kreva")
                 .setFontColor(ColorConstants.WHITE)
                 .setFontSize(11)
                 .setMarginBottom(4));
@@ -285,7 +285,7 @@ public class PdfExportService {
     private void addYearlyComparisonTable(Document doc, Map<String, Object> yearlyData) {
         if (yearlyData == null) return;
 
-        doc.add(new Paragraph("Year Overview — " + yearlyData.get("year"))
+        doc.add(new Paragraph("Year Overview â€” " + yearlyData.get("year"))
                 .setBold().setFontSize(13)
                 .setFontColor(new DeviceRgb(30, 41, 59)).setMarginBottom(4));
 
@@ -316,9 +316,9 @@ public class PdfExportService {
 
     private void addFooter(Document doc) {
         doc.add(new Paragraph("\n"));
-        doc.add(new Paragraph("─────────────────────────────────────────────────────────")
+        doc.add(new Paragraph("â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€")
                 .setFontColor(BORDER).setFontSize(8).setTextAlignment(TextAlignment.CENTER));
-        doc.add(new Paragraph("UgamWaters — ugamwaters.in  |  Confidential Sales Report")
+        doc.add(new Paragraph("Kreva â€” Kreva.in  |  Confidential Sales Report")
                 .setFontSize(8).setFontColor(MUTED).setTextAlignment(TextAlignment.CENTER));
     }
 
@@ -388,7 +388,7 @@ public class PdfExportService {
 
             // Header: Brand & Title
             Table headerTable = new Table(UnitValue.createPercentArray(new float[]{60, 40})).useAllAvailableWidth();
-            headerTable.addCell(new Cell().add(new Paragraph("UGAM WATERS")
+            headerTable.addCell(new Cell().add(new Paragraph("Kreva")
                     .setFontSize(22).setBold().setFontColor(PRIMARY))
                     .setBorder(com.itextpdf.layout.borders.Border.NO_BORDER));
             headerTable.addCell(new Cell().add(new Paragraph("TAX INVOICE")
@@ -402,7 +402,7 @@ public class PdfExportService {
             Table infoTable = new Table(UnitValue.createPercentArray(new float[]{50, 50})).useAllAvailableWidth();
             Cell companyCell = new Cell().add(new Paragraph("From:")
                     .setBold().setFontColor(PRIMARY).setFontSize(11))
-                    .add(new Paragraph("Ugam Waters Office\nBelhe, Alephata, Junnar,\nDist: Pune - 412410, Maharashtra\nEmail: info@ugamwaters.in\nMobile: +91 8390252489")
+                    .add(new Paragraph("Kreva Office\nBelhe, Alephata, Junnar,\nDist: Pune - 412410, Maharashtra\nEmail: info@Kreva.in\nMobile: +91 8390252489")
                     .setFontSize(9))
                     .setBorder(com.itextpdf.layout.borders.Border.NO_BORDER);
             
@@ -459,18 +459,18 @@ public class PdfExportService {
                     pDetails.add(new Text("\nCustomization: " + item.getBusinessName()).setFontSize(8).setFontColor(MUTED));
                 }
                 itemsTable.addCell(new Cell().add(pDetails).setPadding(6));
-                itemsTable.addCell(new Cell().add(new Paragraph("₹" + item.getPrice()).setFontSize(9).setTextAlignment(TextAlignment.RIGHT)).setPadding(6));
+                itemsTable.addCell(new Cell().add(new Paragraph("â‚¹" + item.getPrice()).setFontSize(9).setTextAlignment(TextAlignment.RIGHT)).setPadding(6));
                 itemsTable.addCell(new Cell().add(new Paragraph(item.getQuantity().toString()).setFontSize(9).setTextAlignment(TextAlignment.RIGHT)).setPadding(6));
-                itemsTable.addCell(new Cell().add(new Paragraph("₹" + (item.getPrice() * item.getQuantity())).setFontSize(9).setTextAlignment(TextAlignment.RIGHT)).setPadding(6));
+                itemsTable.addCell(new Cell().add(new Paragraph("â‚¹" + (item.getPrice() * item.getQuantity())).setFontSize(9).setTextAlignment(TextAlignment.RIGHT)).setPadding(6));
             }
 
             itemsTable.addCell(new Cell(1, 3).add(new Paragraph("Grand Total").setBold().setTextAlignment(TextAlignment.RIGHT)).setPadding(6).setBorder(com.itextpdf.layout.borders.Border.NO_BORDER));
-            itemsTable.addCell(new Cell().add(new Paragraph("₹" + order.getTotalAmount()).setBold().setFontColor(PRIMARY).setTextAlignment(TextAlignment.RIGHT)).setPadding(6));
+            itemsTable.addCell(new Cell().add(new Paragraph("â‚¹" + order.getTotalAmount()).setBold().setFontColor(PRIMARY).setTextAlignment(TextAlignment.RIGHT)).setPadding(6));
             doc.add(itemsTable);
 
             addDivider(doc);
 
-            Paragraph terms = new Paragraph("Thank you for your business!\nIf you have any questions about this invoice, please contact support@ugamwaters.in")
+            Paragraph terms = new Paragraph("Thank you for your business!\nIf you have any questions about this invoice, please contact support@Kreva.in")
                     .setFontSize(8).setFontColor(MUTED).setTextAlignment(TextAlignment.CENTER).setItalic();
             doc.add(terms);
 

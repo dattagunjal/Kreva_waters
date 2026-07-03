@@ -63,7 +63,7 @@ public class OrderController {
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename=\"ugamwaters-invoice-" + id + ".pdf\"")
+                        "attachment; filename=\"Kreva-invoice-" + id + ".pdf\"")
                 .contentType(MediaType.APPLICATION_PDF)
                 .contentLength(pdf.length)
                 .body(pdf);

@@ -31,7 +31,7 @@ public class PaymentController {
     @Value("${admin.bank.name:State Bank of India}")
     private String bankName;
 
-    @Value("${admin.bank.account.name:Ugam Waters}")
+    @Value("${admin.bank.account.name:Kreva}")
     private String bankAccountName;
 
     @Value("${admin.bank.account.number:32948293847}")
@@ -40,7 +40,7 @@ public class PaymentController {
     @Value("${admin.bank.ifsc:SBIN0001234}")
     private String bankIfsc;
 
-    @Value("${admin.bank.upi.id:ugamwaters@oksbi}")
+    @Value("${admin.bank.upi.id:Kreva@oksbi}")
     private String bankUpiId;
 
     @GetMapping("/bank-details")

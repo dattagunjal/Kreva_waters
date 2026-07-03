@@ -79,7 +79,7 @@ export class OrdersComponent implements OnInit {
     }
   }
 
-  // ── form field getters ─────────────────────────────────────────────────────
+  // â”€â”€ form field getters â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   get houseNoCtrl()  { return this.checkoutForm.get('houseNo')!; }
   get areaCtrl()     { return this.checkoutForm.get('area')!; }
   get pincodeCtrl()  { return this.checkoutForm.get('pincode')!; }
@@ -270,9 +270,9 @@ export class OrdersComponent implements OnInit {
         if (orderData.publishableKey === 'pk_test_MOCK' || !(window as any).Stripe) {
           let paymentInput: string | null = null;
           if (paymentMethod === 'UPI') {
-            paymentInput = prompt(`[Stripe Mock Payment Gateway - UPI]\nTotal Amount: ₹${totalAmount}\n\nPlease enter a test UPI ID (e.g. user@okaxis):`, 'user@okaxis');
+            paymentInput = prompt(`[Stripe Mock Payment Gateway - UPI]\nTotal Amount: â‚¹${totalAmount}\n\nPlease enter a test UPI ID (e.g. user@okaxis):`, 'user@okaxis');
           } else {
-            paymentInput = prompt(`[Stripe Mock Payment Gateway - CARD]\nTotal Amount: ₹${totalAmount}\n\nPlease enter a test credit card number (e.g. 4242 4242 4242 4242):`, '4242 4242 4242 4242');
+            paymentInput = prompt(`[Stripe Mock Payment Gateway - CARD]\nTotal Amount: â‚¹${totalAmount}\n\nPlease enter a test credit card number (e.g. 4242 4242 4242 4242):`, '4242 4242 4242 4242');
           }
 
           if (paymentInput) {
@@ -432,7 +432,7 @@ export class OrdersComponent implements OnInit {
               key: keyData.keyId,
               amount: razorpayOrder.amount,
               currency: razorpayOrder.currency || 'INR',
-              name: 'Ugam Waters',
+              name: 'Kreva',
               description: 'Water Order Payment',
               order_id: razorpayOrder.id,
               prefill: {

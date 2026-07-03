@@ -68,7 +68,7 @@ public class MineralWaterApplication {
                     // Seed default products
                     if (productRepository.count() == 0) {
                         productRepository.save(com.mineralwater.model.Product.builder()
-                                .name("Ugam Waters 200ml")
+                                .name("Kreva 200ml")
                                 .price(5.0)
                                 .stock(1000)
                                 .description("Refreshing premium mineral water in a 200ml bottle.")
@@ -77,7 +77,7 @@ public class MineralWaterApplication {
                                 .build());
 
                         productRepository.save(com.mineralwater.model.Product.builder()
-                                .name("Ugam Waters 500ml")
+                                .name("Kreva 500ml")
                                 .price(10.0)
                                 .stock(1000)
                                 .description("Refreshing premium mineral water in a 500ml bottle.")
@@ -86,7 +86,7 @@ public class MineralWaterApplication {
                                 .build());
 
                         productRepository.save(com.mineralwater.model.Product.builder()
-                                .name("Ugam Waters 1 Litre")
+                                .name("Kreva 1 Litre")
                                 .price(20.0)
                                 .stock(1000)
                                 .description("Refreshing premium mineral water in a 1 Litre bottle.")
@@ -95,7 +95,7 @@ public class MineralWaterApplication {
                                 .build());
 
                         productRepository.save(com.mineralwater.model.Product.builder()
-                                .name("Ugam Waters 20 Litre Can")
+                                .name("Kreva 20 Litre Can")
                                 .price(80.0)
                                 .stock(1000)
                                 .description("Refreshing premium mineral water in a 20 Litre reusable can.")
@@ -106,10 +106,10 @@ public class MineralWaterApplication {
                 }
 
                 // Seed default admin user if none exists
-                if (!userRepository.existsByEmail("admin@ugamwaters.in")) {
+                if (!userRepository.existsByEmail("admin@Kreva.in")) {
                     com.mineralwater.model.User admin = com.mineralwater.model.User.builder()
                             .name("Admin")
-                            .email("admin@ugamwaters.in")
+                            .email("admin@Kreva.in")
                             .password(passwordEncoder.encode("admin123"))
                             .role(com.mineralwater.model.User.Role.ADMIN)
                             .build();
