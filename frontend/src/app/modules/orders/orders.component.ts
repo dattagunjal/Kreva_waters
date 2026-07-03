@@ -7,6 +7,7 @@ import { OrderService } from '../../core/services/order.service';
 import { PaymentService } from '../../core/services/payment.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Order } from '../../shared/models/models';
+import { environment } from '../../../environments/environment';
 
 /** Validates a 6-digit Indian pincode */
 function pincodeValidator(): ValidatorFn {
@@ -130,26 +131,63 @@ export class OrdersComponent implements OnInit {
     this.inFlightPincodes.add(val);
     this.http.get<any[]>(`https://api.postalpincode.in/pincode/${val}`).subscribe({
       next: (res) => {
-        this.inFlightPincodes.delete(val);
         const isValid = !!(res && res[0] && res[0].Status === 'Success');
-        this.pincodeCache.set(val, isValid);
-        
-        // Only set errors if the user hasn't typed a different pincode in the meantime
-        if (this.pincodeCtrl.value === val) {
-          if (isValid) {
-            this.pincodeCtrl.setErrors(null);
-          } else {
+        if (!isValid) {
+          this.inFlightPincodes.delete(val);
+          this.pincodeCache.set(val, false);
+          if (this.pincodeCtrl.value === val) {
             this.pincodeCtrl.setErrors({ invalidPincode: true });
           }
+          return;
         }
+
+        // Pincode is valid in India. Now check if it is serviceable by our backend!
+        this.http.get<any>(`${environment.apiUrl}/api/pincodes/check/${val}`).subscribe({
+          next: (checkRes) => {
+            this.inFlightPincodes.delete(val);
+            const isServiceable = !!(checkRes && checkRes.serviceable);
+            this.pincodeCache.set(val, isServiceable);
+            if (this.pincodeCtrl.value === val) {
+              if (isServiceable) {
+                this.pincodeCtrl.setErrors(null);
+              } else {
+                this.pincodeCtrl.setErrors({ notServiceable: true });
+              }
+            }
+          },
+          error: () => {
+            this.inFlightPincodes.delete(val);
+            // Fallback: assume serviceable if check fails
+            this.pincodeCache.set(val, true);
+            if (this.pincodeCtrl.value === val) {
+              this.pincodeCtrl.setErrors(null);
+            }
+          }
+        });
       },
       error: () => {
-        this.inFlightPincodes.delete(val);
-        // Fallback: assume valid if API is down
-        this.pincodeCache.set(val, true);
-        if (this.pincodeCtrl.value === val) {
-          this.pincodeCtrl.setErrors(null);
-        }
+        // Fallback: assume valid in India, but check serviceability
+        this.http.get<any>(`${environment.apiUrl}/api/pincodes/check/${val}`).subscribe({
+          next: (checkRes) => {
+            this.inFlightPincodes.delete(val);
+            const isServiceable = !!(checkRes && checkRes.serviceable);
+            this.pincodeCache.set(val, isServiceable);
+            if (this.pincodeCtrl.value === val) {
+              if (isServiceable) {
+                this.pincodeCtrl.setErrors(null);
+              } else {
+                this.pincodeCtrl.setErrors({ notServiceable: true });
+              }
+            }
+          },
+          error: () => {
+            this.inFlightPincodes.delete(val);
+            this.pincodeCache.set(val, true);
+            if (this.pincodeCtrl.value === val) {
+              this.pincodeCtrl.setErrors(null);
+            }
+          }
+        });
       }
     });
   }

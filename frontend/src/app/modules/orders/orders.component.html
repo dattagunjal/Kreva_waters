@@ -104,6 +104,9 @@
           <span class="error" *ngIf="pincodeCtrl.touched && pincodeCtrl.value && pincodeCtrl.errors?.['invalidPincode']">
             The entered pincode ({{ pincodeCtrl.value }}) is invalid or does not exist in India.
           </span>
+          <span class="error" *ngIf="pincodeCtrl.touched && pincodeCtrl.value && pincodeCtrl.errors?.['notServiceable']">
+            We are not currently providing service to this pincode.
+          </span>
         </div>
 
         <!-- Payment Method -->

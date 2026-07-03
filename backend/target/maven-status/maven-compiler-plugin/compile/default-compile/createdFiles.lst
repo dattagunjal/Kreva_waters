@@ -4,10 +4,12 @@ com\mineralwater\service\PdfExportService.class
 com\mineralwater\repository\ProductRepository.class
 com\mineralwater\model\Category$CategoryBuilder.class
 com\mineralwater\dto\AuthDto$RegisterRequest.class
+com\mineralwater\repository\ServiceablePincodeRepository.class
 com\mineralwater\dto\OrderDto$OrderItemDto.class
 com\mineralwater\MineralWaterApplication.class
 com\mineralwater\dto\AuthDto$AuthResponse$UserResponse.class
 com\mineralwater\model\OrderItem$OrderItemBuilder.class
+com\mineralwater\model\ServiceablePincode$ServiceablePincodeBuilder.class
 com\mineralwater\service\PaymentService.class
 com\mineralwater\controller\CategoryController.class
 com\mineralwater\controller\ProductController.class
@@ -27,6 +29,7 @@ com\mineralwater\model\Order$PaymentStatus.class
 com\mineralwater\repository\UserRepository.class
 com\mineralwater\dto\AuthDto$LoginRequest.class
 com\mineralwater\controller\OrderController.class
+com\mineralwater\controller\PincodeController.class
 com\mineralwater\repository\EnquiryRepository.class
 com\mineralwater\model\Product.class
 com\mineralwater\model\Product$ProductBuilder.class
@@ -48,6 +51,7 @@ com\mineralwater\service\AuthService.class
 com\mineralwater\model\Order$Status.class
 com\mineralwater\model\User$Role.class
 com\mineralwater\service\ProductService.class
+com\mineralwater\model\ServiceablePincode.class
 com\mineralwater\controller\ContactController.class
 com\mineralwater\model\OtpEntry$Purpose.class
 com\mineralwater\model\OtpEntry.class

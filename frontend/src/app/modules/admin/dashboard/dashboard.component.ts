@@ -18,8 +18,15 @@ export class AdminDashboardComponent implements OnInit {
   users: User[] = [];
   stats: any = null;
 
-  activeTab: 'overview' | 'products' | 'categories' | 'orders' | 'users' = 'overview';
+  activeTab: 'overview' | 'products' | 'categories' | 'orders' | 'users' | 'pincodes' = 'overview';
   
+  pincodes: any[] = [];
+  pincodeForm: FormGroup;
+  pincodeSearch = '';
+  pincodePage = 1;
+  pincodeSuccess = '';
+  pincodeError = '';
+
   productForm: FormGroup;
   editingProduct: Product | null = null;
   showForm = false;
@@ -64,6 +71,10 @@ export class AdminDashboardComponent implements OnInit {
     this.categoryForm = this.fb.group({
       name: ['', Validators.required]
     });
+
+    this.pincodeForm = this.fb.group({
+      pincode: ['', [Validators.required, Validators.pattern('^[1-9][0-9]{5}$')]]
+    });
   }
 
   ngOnInit(): void {
@@ -72,6 +83,7 @@ export class AdminDashboardComponent implements OnInit {
     this.loadCategories();
     this.loadOrders();
     this.loadUsers();
+    this.loadPincodes();
   }
 
   loadStats(): void {
@@ -321,5 +333,70 @@ export class AdminDashboardComponent implements OnInit {
 
   getUserPageCount() {
     return Math.ceil(this.getFilteredUsers().length / this.pageSize) || 1;
+  }
+
+  // Pincodes
+  loadPincodes(): void {
+    this.adminService.getServiceablePincodes().subscribe({
+      next: (data) => this.pincodes = data,
+      error: (err) => console.error('Failed to load pincodes', err)
+    });
+  }
+
+  addPincode(): void {
+    if (this.pincodeForm.invalid) {
+      this.pincodeForm.markAllAsTouched();
+      return;
+    }
+    const code = this.pincodeForm.value.pincode;
+    this.adminService.addServiceablePincode(code).subscribe({
+      next: () => {
+        this.pincodeSuccess = `Pincode ${code} added successfully!`;
+        this.pincodeError = '';
+        this.pincodeForm.reset();
+        this.loadPincodes();
+        setTimeout(() => this.pincodeSuccess = '', 3000);
+      },
+      error: (err) => {
+        this.pincodeError = err.error?.message || 'Failed to add pincode.';
+        this.pincodeSuccess = '';
+      }
+    });
+  }
+
+  deletePincode(pincode: string): void {
+    if (confirm(`Are you sure you want to remove pincode ${pincode} from serviceable list?`)) {
+      this.adminService.deleteServiceablePincode(pincode).subscribe({
+        next: () => {
+          this.pincodeSuccess = `Pincode ${pincode} removed successfully.`;
+          this.pincodeError = '';
+          this.loadPincodes();
+          setTimeout(() => this.pincodeSuccess = '', 3000);
+        },
+        error: (err) => {
+          this.pincodeError = err.error?.message || 'Failed to remove pincode.';
+          this.pincodeSuccess = '';
+        }
+      });
+    }
+  }
+
+  getFilteredPincodes() {
+    let result = [...this.pincodes];
+    if (this.pincodeSearch) {
+      const q = this.pincodeSearch.trim();
+      result = result.filter(p => p.pincode.includes(q));
+    }
+    return result;
+  }
+
+  getPaginatedPincodes() {
+    const filtered = this.getFilteredPincodes();
+    const startIndex = (this.pincodePage - 1) * this.pageSize;
+    return filtered.slice(startIndex, startIndex + this.pageSize);
+  }
+
+  getPincodePageCount() {
+    return Math.ceil(this.getFilteredPincodes().length / this.pageSize) || 1;
   }
 }

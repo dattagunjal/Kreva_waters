@@ -49,6 +49,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/payment/webhook", "/api/payment/bank-details", "/api/payment/razorpay-key").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/products", "/api/products/**").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/categories", "/api/categories/**").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/pincodes/check/**").permitAll()
                 .requestMatchers("/api/products", "/api/products/**").hasRole("ADMIN")
                 .requestMatchers("/api/categories", "/api/categories/**").hasRole("ADMIN")
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")

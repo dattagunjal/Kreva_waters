@@ -24,6 +24,7 @@ public class OrderService {
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
     private final NotificationService notificationService;
+    private final ServiceablePincodeRepository serviceablePincodeRepository;
 
     private User findUserByPrincipal(String principal) {
         if (EMAIL_PATTERN.matcher(principal).matches()) {
@@ -53,6 +54,12 @@ public class OrderService {
         }
         
         String pincode = matcher.group(1);
+
+        // Verify if pincode is serviceable
+        long serviceableCount = serviceablePincodeRepository.count();
+        if (serviceableCount > 0 && !serviceablePincodeRepository.existsByPincode(pincode)) {
+            throw new RuntimeException("We are not currently providing service to this pincode (" + pincode + ").");
+        }
         
         // Verify if pincode exists via India Post API
         try {

@@ -25,4 +25,16 @@ export class AdminService {
   deleteUser(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/users/${id}`);
   }
+
+  getServiceablePincodes(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/pincodes`);
+  }
+
+  addServiceablePincode(pincode: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/pincodes`, { pincode });
+  }
+
+  deleteServiceablePincode(pincode: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/pincodes/${pincode}`);
+  }
 }

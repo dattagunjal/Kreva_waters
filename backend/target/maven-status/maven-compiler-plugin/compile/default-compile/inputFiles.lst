@@ -4,6 +4,7 @@ C:\Users\user\My Projects\Git\Ugam_waters\backend\src\main\java\com\mineralwater
 C:\Users\user\My Projects\Git\Ugam_waters\backend\src\main\java\com\mineralwater\controller\AuthController.java
 C:\Users\user\My Projects\Git\Ugam_waters\backend\src\main\java\com\mineralwater\repository\OtpRepository.java
 C:\Users\user\My Projects\Git\Ugam_waters\backend\src\main\java\com\mineralwater\dto\AuthDto.java
+C:\Users\user\My Projects\Git\Ugam_waters\backend\src\main\java\com\mineralwater\controller\PincodeController.java
 C:\Users\user\My Projects\Git\Ugam_waters\backend\src\main\java\com\mineralwater\controller\PdfExportController.java
 C:\Users\user\My Projects\Git\Ugam_waters\backend\src\main\java\com\mineralwater\controller\SalesController.java
 C:\Users\user\My Projects\Git\Ugam_waters\backend\src\main\java\com\mineralwater\model\OtpEntry.java
@@ -11,11 +12,13 @@ C:\Users\user\My Projects\Git\Ugam_waters\backend\src\main\java\com\mineralwater
 C:\Users\user\My Projects\Git\Ugam_waters\backend\src\main\java\com\mineralwater\repository\ProductRepository.java
 C:\Users\user\My Projects\Git\Ugam_waters\backend\src\main\java\com\mineralwater\controller\AdminDashboardController.java
 C:\Users\user\My Projects\Git\Ugam_waters\backend\src\main\java\com\mineralwater\service\PaymentService.java
+C:\Users\user\My Projects\Git\Ugam_waters\backend\src\main\java\com\mineralwater\model\ServiceablePincode.java
 C:\Users\user\My Projects\Git\Ugam_waters\backend\src\main\java\com\mineralwater\service\SalesService.java
 C:\Users\user\My Projects\Git\Ugam_waters\backend\src\main\java\com\mineralwater\model\OrderItem.java
 C:\Users\user\My Projects\Git\Ugam_waters\backend\src\main\java\com\mineralwater\service\PdfExportService.java
 C:\Users\user\My Projects\Git\Ugam_waters\backend\src\main\java\com\mineralwater\controller\PaymentController.java
 C:\Users\user\My Projects\Git\Ugam_waters\backend\src\main\java\com\mineralwater\model\Product.java
+C:\Users\user\My Projects\Git\Ugam_waters\backend\src\main\java\com\mineralwater\repository\ServiceablePincodeRepository.java
 C:\Users\user\My Projects\Git\Ugam_waters\backend\src\main\java\com\mineralwater\MineralWaterApplication.java
 C:\Users\user\My Projects\Git\Ugam_waters\backend\src\main\java\com\mineralwater\model\Order.java
 C:\Users\user\My Projects\Git\Ugam_waters\backend\src\main\java\com\mineralwater\controller\CategoryController.java
