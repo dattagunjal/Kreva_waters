@@ -50,6 +50,44 @@ public class PincodeController {
             throw new RuntimeException("Pincode " + cleanedCode + " is already in the serviceable list.");
         }
 
+        // Verify if pincode exists via India Post API
+        try {
+            org.springframework.web.client.RestTemplate restTemplate = new org.springframework.web.client.RestTemplate();
+            
+            org.springframework.http.client.SimpleClientHttpRequestFactory factory = new org.springframework.http.client.SimpleClientHttpRequestFactory();
+            factory.setConnectTimeout(3000);
+            factory.setReadTimeout(3000);
+            restTemplate.setRequestFactory(factory);
+
+            String url = "https://api.postalpincode.in/pincode/" + cleanedCode;
+            
+            org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+            headers.set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+            org.springframework.http.HttpEntity<String> entity = new org.springframework.http.HttpEntity<>(headers);
+            
+            org.springframework.http.ResponseEntity<java.util.List> responseEntity = restTemplate.exchange(
+                url,
+                org.springframework.http.HttpMethod.GET,
+                entity,
+                java.util.List.class
+            );
+
+            java.util.List<?> response = responseEntity.getBody();
+            if (response != null && !response.isEmpty()) {
+                java.util.Map<?, ?> firstResult = (java.util.Map<?, ?>) response.get(0);
+                String status = (String) firstResult.get("Status");
+                if ("Error".equalsIgnoreCase(status)) {
+                    throw new RuntimeException("The entered pincode (" + cleanedCode + ") is invalid or does not exist in India.");
+                }
+            }
+        } catch (RuntimeException re) {
+            if (re.getMessage() != null && re.getMessage().contains("does not exist")) {
+                throw re;
+            }
+        } catch (Exception e) {
+            // Fallback for general exceptions (e.g. API down), allow
+        }
+
         ServiceablePincode pincode = ServiceablePincode.builder()
                 .pincode(cleanedCode)
                 .build();
