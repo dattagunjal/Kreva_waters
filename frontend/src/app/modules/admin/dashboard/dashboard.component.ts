@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
 import { Product, Order, User } from '../../../shared/models/models';
 import { ProductService } from '../../../core/services/product.service';
 import { OrderService } from '../../../core/services/order.service';
@@ -57,7 +58,8 @@ export class AdminDashboardComponent implements OnInit {
     private productService: ProductService,
     private orderService: OrderService,
     private categoryService: CategoryService,
-    private adminService: AdminService
+    private adminService: AdminService,
+    private http: HttpClient
   ) {
     this.productForm = this.fb.group({
       name: ['', Validators.required],
@@ -348,18 +350,48 @@ export class AdminDashboardComponent implements OnInit {
       this.pincodeForm.markAllAsTouched();
       return;
     }
-    const code = this.pincodeForm.value.pincode;
-    this.adminService.addServiceablePincode(code).subscribe({
-      next: () => {
-        this.pincodeSuccess = `Pincode ${code} added successfully!`;
-        this.pincodeError = '';
-        this.pincodeForm.reset();
-        this.loadPincodes();
-        setTimeout(() => this.pincodeSuccess = '', 3000);
+    const code = this.pincodeForm.value.pincode.toString().trim();
+    
+    // Check if it's a real pincode via India Post API first
+    this.http.get<any[]>(`https://api.postalpincode.in/pincode/${code}`).subscribe({
+      next: (res) => {
+        const isValid = !!(res && res[0] && res[0].Status === 'Success');
+        if (!isValid) {
+          this.pincodeError = `The entered pincode (${code}) is invalid or does not exist in India.`;
+          this.pincodeSuccess = '';
+          return;
+        }
+
+        // Pincode exists! Save to database
+        this.adminService.addServiceablePincode(code).subscribe({
+          next: () => {
+            this.pincodeSuccess = `Pincode ${code} added successfully!`;
+            this.pincodeError = '';
+            this.pincodeForm.reset();
+            this.loadPincodes();
+            setTimeout(() => this.pincodeSuccess = '', 3000);
+          },
+          error: (err) => {
+            this.pincodeError = err.error?.message || 'Failed to add pincode.';
+            this.pincodeSuccess = '';
+          }
+        });
       },
-      error: (err) => {
-        this.pincodeError = err.error?.message || 'Failed to add pincode.';
-        this.pincodeSuccess = '';
+      error: () => {
+        // Fallback: allow if API is down
+        this.adminService.addServiceablePincode(code).subscribe({
+          next: () => {
+            this.pincodeSuccess = `Pincode ${code} added successfully!`;
+            this.pincodeError = '';
+            this.pincodeForm.reset();
+            this.loadPincodes();
+            setTimeout(() => this.pincodeSuccess = '', 3000);
+          },
+          error: (err) => {
+            this.pincodeError = err.error?.message || 'Failed to add pincode.';
+            this.pincodeSuccess = '';
+          }
+        });
       }
     });
   }
