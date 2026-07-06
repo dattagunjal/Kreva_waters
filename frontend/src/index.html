@@ -2,17 +2,17 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Kreva — Premium Mineral Water Delivery</title>
+  <title>Kreva â€” Premium Mineral Water Delivery</title>
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Kreva — Premium mineral water delivery service. Pure, refreshing water delivered to your doorstep. Order online for fast delivery.">
+  <meta name="description" content="Kreva â€” Premium mineral water delivery service. Pure, refreshing water delivered to your doorstep. Order online for fast delivery.">
   <meta name="keywords" content="mineral water, water delivery, premium water, Kreva, drinking water, purified water">
   <meta name="author" content="Kreva">
   <meta name="theme-color" content="#0a0e1a">
   <meta name="robots" content="index, follow">
 
   <!-- Open Graph -->
-  <meta property="og:title" content="Kreva — Premium Mineral Water Delivery">
+  <meta property="og:title" content="Kreva â€” Premium Mineral Water Delivery">
   <meta property="og:description" content="Pure, refreshing mineral water delivered to your doorstep. Order online for fast delivery.">
   <meta property="og:type" content="website">
 
@@ -55,16 +55,10 @@
       animation: loading-spin 0.8s linear infinite;
     }
 
-    .app-loading .brand {
-      margin-top: 24px;
-      font-family: 'Inter', sans-serif;
-      font-size: 1.5rem;
-      font-weight: 700;
-      background: linear-gradient(135deg, #3b82f6, #60a5fa, #38bdf8);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      letter-spacing: -0.02em;
+    .app-loading .loading-logo {
+      height: 70px;
+      width: auto;
+      margin-bottom: 24px;
     }
 
     .app-loading .tagline {
@@ -83,8 +77,8 @@
 <body>
   <app-root>
     <div class="app-loading">
+      <img src="assets/images/logo.png" alt="Kreva Logo" class="loading-logo">
       <div class="spinner"></div>
-      <div class="brand">💧 Kreva</div>
       <div class="tagline">Loading premium experience...</div>
     </div>
   </app-root>

@@ -3,8 +3,7 @@
 
     <!-- Header -->
     <div class="auth-header">
-      <span class="auth-logo">💧</span>
-      <h2>Kreva</h2>
+      <img src="assets/images/logo.png" alt="Kreva Logo" class="auth-brand-logo">
       <p>Sign in to your account</p>
     </div>
 
@@ -13,12 +12,12 @@
       <button type="button"
               [class.active]="loginMode === 'password'"
               (click)="switchMode('password')">
-        🔒 Password
+        ðŸ”’ Password
       </button>
       <button type="button"
               [class.active]="loginMode === 'otp'"
               (click)="switchMode('otp')">
-        📱 Login with OTP
+        ðŸ“± Login with OTP
       </button>
     </div>
 
@@ -26,7 +25,7 @@
 
     <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
 
-      <!-- ── Email / Mobile ─────────────────────────────────────────── -->
+      <!-- â”€â”€ Email / Mobile â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
       <div class="form-group">
         <label for="login-id">Email / Mobile Number</label>
 
@@ -54,7 +53,7 @@
                   ? 'Resend in ' + otpCountdown + 's'
                   : (otpSent ? 'Resend OTP' : 'Send OTP') }}
             </span>
-            <span *ngIf="otpLoading">⏳</span>
+            <span *ngIf="otpLoading">â³</span>
           </button>
         </div>
 
@@ -67,12 +66,12 @@
 
         <!-- Dev OTP hint -->
         <div class="dev-otp-box" *ngIf="devOtp && loginMode === 'otp'">
-          🛠 <strong>Dev OTP:</strong> <span class="dev-otp-code">{{ devOtp }}</span>
+          ðŸ›  <strong>Dev OTP:</strong> <span class="dev-otp-code">{{ devOtp }}</span>
           <span class="dev-otp-note">(Remove in production)</span>
         </div>
       </div>
 
-      <!-- ── OTP Input (OTP mode) ───────────────────────────────────── -->
+      <!-- â”€â”€ OTP Input (OTP mode) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
       <div class="form-group otp-group" *ngIf="loginMode === 'otp' && otpSent">
         <label for="login-otp">Enter OTP</label>
         <input id="login-otp" type="text" formControlName="otp"
@@ -80,19 +79,19 @@
                class="otp-input"/>
       </div>
 
-      <!-- ── Password (password mode) ──────────────────────────────── -->
+      <!-- â”€â”€ Password (password mode) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
       <div class="form-group" *ngIf="loginMode === 'password'">
         <label for="login-password">Password</label>
         <div class="password-wrapper">
           <input id="login-password"
                  [type]="showPassword ? 'text' : 'password'"
                  formControlName="password"
-                 placeholder="••••••••"
+                 placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                  autocomplete="current-password"/>
           <button type="button" class="btn-eye"
                   (click)="showPassword = !showPassword"
                   [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'">
-            {{ showPassword ? '🙈' : '👁️' }}
+            {{ showPassword ? 'ðŸ™ˆ' : 'ðŸ‘ï¸' }}
           </button>
         </div>
         <span class="error" *ngIf="passwordCtrl.touched && passwordCtrl.errors?.['required']">
@@ -103,13 +102,13 @@
         </span>
       </div>
 
-      <!-- ── Submit ─────────────────────────────────────────────────── -->
+      <!-- â”€â”€ Submit â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
       <button type="submit" class="btn-primary"
               [disabled]="loading || (loginMode === 'otp' && !otpSent)">
         <span *ngIf="!loading">
-          {{ loginMode === 'otp' ? '📱 Verify & Sign In' : '🔐 Sign In' }}
+          {{ loginMode === 'otp' ? 'ðŸ“± Verify & Sign In' : 'ðŸ” Sign In' }}
         </span>
-        <span *ngIf="loading">Signing in…</span>
+        <span *ngIf="loading">Signing inâ€¦</span>
       </button>
     </form>
 
