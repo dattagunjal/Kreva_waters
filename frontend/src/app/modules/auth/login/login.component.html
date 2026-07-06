@@ -53,7 +53,7 @@
                   ? 'Resend in ' + otpCountdown + 's'
                   : (otpSent ? 'Resend OTP' : 'Send OTP') }}
             </span>
-            <span *ngIf="otpLoading">â³</span>
+            <span *ngIf="otpLoading">⏳</span>
           </button>
         </div>
 
@@ -106,7 +106,7 @@
       <button type="submit" class="btn-primary"
               [disabled]="loading || (loginMode === 'otp' && !otpSent)">
         <span *ngIf="!loading">
-          {{ loginMode === 'otp' ? '📱 Verify & Sign In' : 'ðŸ” Sign In' }}
+          {{ loginMode === 'otp' ? '📱 Verify & Sign In' : '🚀 Sign In' }}
         </span>
         <span *ngIf="loading">Signing in…</span>
       </button>

@@ -58,7 +58,7 @@
             <span *ngIf="!otpLoading">
               {{ otpSent && otpCountdown > 0 ? 'Resend in ' + otpCountdown + 's' : (otpSent ? 'Resend OTP' : 'Send OTP') }}
             </span>
-            <span *ngIf="otpLoading" class="spinner-inline">â³</span>
+            <span *ngIf="otpLoading" class="spinner-inline">⏳</span>
           </button>
         </div>
         <span class="error" *ngIf="registerForm.touched && registerForm.errors?.['emailVerificationRequired']">
