@@ -50,6 +50,7 @@ public class SecurityConfig {
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/products", "/api/products/**").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/categories", "/api/categories/**").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/pincodes/check/**").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/", "/favicon.ico").permitAll()
                 .requestMatchers("/api/products", "/api/products/**").hasRole("ADMIN")
                 .requestMatchers("/api/categories", "/api/categories/**").hasRole("ADMIN")
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
@@ -124,9 +125,13 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of(
             "http://localhost:4200",
+            "https://www.kreva.in",
+            "https://kreva.in",
             "https://www.Kreva.in",
             "https://Kreva.in",
-            "https://kreva.vercel.app"
+            "https://kreva-waters-1.onrender.com",
+            "https://kreva-waters-2.onrender.com",
+            "https://kreva-frontend.onrender.com"
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
