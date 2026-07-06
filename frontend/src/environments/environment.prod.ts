@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://ugam-backend.onrender.com'
+  apiUrl: 'https://kreva-waters.onrender.com'
 };
